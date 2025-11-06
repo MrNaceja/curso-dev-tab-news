@@ -1,0 +1,8 @@
+root = true
+
+# Valido para TODOS os arquivos
+[*] 
+# Utilizar identação por espaços
+indent_style = space
+# Utilizar espaço de identação tamanho 2 (2 espaços)
+indent_size = 2
