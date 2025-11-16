@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "description": "Clone do Tab News desenvolvido nas aulas do Grande Filipe Deschamps no Curso.Dev",
   "main": "index.js",
+  "contributors": [
+    {
+      "name": "Eduardo Toriani",
+      "email": "edutoriani13@gmail.com",
+      "url": "https://github.com/MrNaceja"
+    }
+  ],
   "scripts": {
     "dev": "next dev",
     "lint:check": "prettier --check .",
