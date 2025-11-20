@@ -11,7 +11,12 @@
     }
   ],
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run services:up && next dev",
+    "dev:test": "npm run services:up && next dev",
+    "services": "docker compose -f infra/compose.yaml",
+    "services:up": "npm run services up -- -d",
+    "services:stop": "npm run services stop",
+    "services:down": "npm run services down",
     "lint:check": "prettier --check .",
     "lint:fix": "prettier --write .",
     "test": "jest",
