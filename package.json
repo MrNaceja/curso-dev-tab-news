@@ -12,7 +12,6 @@
   ],
   "scripts": {
     "dev": "npm run services:up && next dev",
-    "dev:test": "npm run services:up && next dev",
     "services": "docker compose -f infra/compose.yaml",
     "services:up": "npm run services up -- -d",
     "services:stop": "npm run services stop",
