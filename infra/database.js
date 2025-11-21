@@ -8,7 +8,10 @@ async function query(q) {
     password: process.env.POSTGRES_PASSWORD,
     port: process.env.POSTGRES_PORT,
   };
-  const client = new Client(postgressCredentials);
+  const client = new Client({
+    ...postgressCredentials,
+    ssl: process.env.NODE_ENV !== "development",
+  });
   console.info("Credenciais Postgres: ", postgressCredentials);
 
   try {
