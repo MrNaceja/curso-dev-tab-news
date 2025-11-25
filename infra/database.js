@@ -7,10 +7,17 @@ const useSSL = () => {
     };
   }
 
-  return process.env.NODE_ENV !== "development";
+  return process.env.NODE_ENV === "production";
 };
 
 async function query(q) {
+  return await withClientConnected(async (client) => {
+    const result = await client.query(q);
+    return result;
+  });
+}
+
+function newClient() {
   const client = new Client({
     user: process.env.POSTGRES_USER,
     host: process.env.POSTGRES_HOST,
@@ -19,10 +26,17 @@ async function query(q) {
     port: process.env.POSTGRES_PORT,
     ssl: useSSL(),
   });
+  return client;
+}
 
+async function withClientConnected(callback) {
+  const client = newClient();
   try {
     await client.connect();
-    const result = await client.query(q);
+    const result = callback(client);
+    if (result instanceof Promise) {
+      await result;
+    }
     return result;
   } catch (e) {
     console.error(e);
@@ -32,4 +46,4 @@ async function query(q) {
   }
 }
 
-export default { query };
+export default { query, newClient, withClientConnected };

@@ -18,8 +18,8 @@
     "services:down": "npm run services down",
     "lint:check": "prettier --check .",
     "lint:fix": "prettier --write .",
-    "test": "jest",
-    "test:watch": "jest --watchAll",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watchAll --runInBand",
     "migrations": "node-pg-migrate --migrations-dir infra/migrations --envPath .env.development",
     "migrations:create": "npm run migrations create",
     "migrations:up": "npm run migrations up"
@@ -28,6 +28,7 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.4.4",
+    "dotenv-expand": "^11.0.6",
     "next": "^13.1.6",
     "node-pg-migrate": "^6.2.2",
     "pg": "^8.11.3",

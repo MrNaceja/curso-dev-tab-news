@@ -42,7 +42,7 @@ const catchDatabaseDependencyMetadata = async () => {
     rowMode: "array",
   });
 
-  const [openedConnections] = openedConnectionsQueryResult.rows;
+  const [[openedConnections]] = openedConnectionsQueryResult.rows;
 
   return {
     maxConnections: parseInt(maxConnections),
