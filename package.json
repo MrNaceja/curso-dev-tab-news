@@ -11,7 +11,7 @@
     }
   ],
   "scripts": {
-    "dev": "npm run services:up && next dev",
+    "dev": "npm run services:up && npm run scripts:check-postgres-is-ready && npm run migrations:up && next dev",
     "services": "docker compose -f infra/compose.yaml",
     "services:up": "npm run services up -- -d",
     "services:stop": "npm run services stop",
@@ -22,7 +22,8 @@
     "test:watch": "jest --watchAll --runInBand",
     "migrations": "node-pg-migrate --migrations-dir infra/migrations --envPath .env.development",
     "migrations:create": "npm run migrations create",
-    "migrations:up": "npm run migrations up"
+    "migrations:up": "npm run migrations up",
+    "scripts:check-postgres-is-ready": "node infra/scripts/check-postgres-is-ready.js"
   },
   "author": "",
   "license": "MIT",
