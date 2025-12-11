@@ -5,7 +5,7 @@ function checkPostgresIsReady() {
     "docker exec local-database-postgres pg_isready --host localhost",
     (_, stdout) => {
       if (stdout.includes("accepting connections")) {
-        process.stdout.write("\n ✅ Serviço postgres esta pronto \n");
+        process.stdout.write("\n ✅ Serviço postgres está pronto \n");
         return;
       }
 
