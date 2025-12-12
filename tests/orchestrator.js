@@ -9,10 +9,16 @@ function checkNextWebserverIsUp() {
       });
 
       if (!res.ok) throw new Error("Webserver is not ready, retrying...");
-      await res.json();
     },
     {
       retries: 10,
+      maxTimeout: 1000,
+      onRetry(fail, attempt) {
+        console.warn(
+          `Attempt #${attempt} - Fail on checking next webserver`,
+          fail,
+        );
+      },
     },
   );
 }
@@ -23,7 +29,7 @@ async function resetDatabase() {
 
 export const Orchestrator = {
   async beforeAll() {
-    await resetDatabase();
     await checkNextWebserverIsUp();
+    await resetDatabase();
   },
 };

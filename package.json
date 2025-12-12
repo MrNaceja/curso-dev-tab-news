@@ -11,15 +11,14 @@
     }
   ],
   "scripts": {
-    "dev": "npm run predev && next dev",
+    "dev": "npm run services:up && npm run scripts:check-postgres-is-ready && npm run migrations:up && next dev",
     "services": "docker compose -f infra/compose.yaml",
     "services:up": "npm run services up -- -d",
     "services:stop": "npm run services stop",
     "services:down": "npm run services down",
     "lint:check": "prettier --check .",
     "lint:fix": "prettier --write .",
-    "predev": "npm run services:up && npm run scripts:check-postgres-is-ready && npm run migrations:up",
-    "test": "npm run predev && concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand\"",
+    "test": "npm run services:up && concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand --verbose\"",
     "test:watch": "jest --watchAll --runInBand",
     "migrations": "node-pg-migrate --migrations-dir infra/migrations --envPath .env.development",
     "migrations:create": "npm run migrations create",
