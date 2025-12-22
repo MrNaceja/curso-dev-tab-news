@@ -1,6 +1,6 @@
 import { Client } from "pg";
 
-const useSSL = () => {
+const catchSSL = () => {
   if (process.env.SSL_CREDENTIAL_CERTIFICATE) {
     return {
       ca: process.env.SSL_CREDENTIAL_CERTIFICATE,
@@ -24,7 +24,7 @@ function newClient() {
     database: process.env.POSTGRES_DB,
     password: process.env.POSTGRES_PASSWORD,
     port: process.env.POSTGRES_PORT,
-    ssl: useSSL(),
+    ssl: catchSSL(),
   });
   return client;
 }
@@ -46,4 +46,6 @@ async function withClientConnected(callback) {
   }
 }
 
-export default { query, newClient, withClientConnected };
+const database = { query, newClient, withClientConnected };
+
+export default database;

@@ -2,7 +2,7 @@ import database from "infra/database";
 import migrator from "node-pg-migrate";
 import { join } from "node:path";
 
-export default function (req, res) {
+export default function handler(req, res) {
   switch (req.method) {
     case "GET":
       return GET(req, res);
