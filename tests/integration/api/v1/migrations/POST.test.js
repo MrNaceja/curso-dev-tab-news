@@ -1,14 +1,9 @@
-import database from "infra/database";
+import { Orchestrator } from "tests/orchestrator";
 
-beforeAll(resetDatabase);
-
-async function resetDatabase() {
-  console.log("Reseting database...");
-  await database.query("DROP SCHEMA PUBLIC CASCADE; CREATE SCHEMA PUBLIC;");
-}
+beforeAll(Orchestrator.beforeAll);
 
 test("POST on /api/v1/migrations should be receive 200 status code and exists a valid migrations list and check for granted migration execution", async () => {
-  const res1 = await fetch("http://localhost:3000/api/v1/migrations", {
+  const res1 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/migrations`, {
     method: "POST",
   });
   expect(res1.status).toBe(201);
@@ -19,7 +14,7 @@ test("POST on /api/v1/migrations should be receive 200 status code and exists a 
 
   expect(migrations1.length).toBeGreaterThan(0);
 
-  const res2 = await fetch("http://localhost:3000/api/v1/migrations", {
+  const res2 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/migrations`, {
     method: "POST",
   });
   expect(res2.status).toBe(200);
