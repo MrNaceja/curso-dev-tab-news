@@ -15,3 +15,15 @@ jobs:
       # run: "roda" um comando diretamente na instancia da maquina do job
       - run: npm ci
       - run: npm run lint:prettier:check
+  eslint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      # uses: "usa" uma action já existente
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18.14.2"
+      # run: "roda" um comando diretamente na instancia da maquina do job
+      - run: npm ci
+      - run: npm run lint:eslint:check
