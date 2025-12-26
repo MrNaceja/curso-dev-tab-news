@@ -1,27 +1,36 @@
 import { Orchestrator } from "tests/orchestrator";
 
-beforeAll(Orchestrator.beforeAll);
+beforeAll(Orchestrator.prepare);
 
-test("POST on /api/v1/migrations should be receive 200 status code and exists a valid migrations list and check for granted migration execution", async () => {
-  const res1 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/migrations`, {
-    method: "POST",
+describe("POST on /api/v1/migrations", () => {
+  describe("with Anonymous user", () => {
+    test("on first time should list pending migrations", async () => {
+      const res = await fetch(
+        `${process.env.WEBSERVER_URL}/api/v1/migrations`,
+        {
+          method: "POST",
+        },
+      );
+      expect(res.status).toBe(201);
+
+      const pendingMigrations = await res.json();
+      expect(Array.isArray(pendingMigrations)).toBeTruthy();
+
+      expect(pendingMigrations.length).toBeGreaterThan(0);
+    });
+    test("on second time should list executed migrations", async () => {
+      const res = await fetch(
+        `${process.env.WEBSERVER_URL}/api/v1/migrations`,
+        {
+          method: "POST",
+        },
+      );
+      expect(res.status).toBe(200);
+
+      const executedMigrations = await res.json();
+      expect(Array.isArray(executedMigrations)).toBeTruthy();
+
+      expect(executedMigrations.length).toBe(0);
+    });
   });
-  expect(res1.status).toBe(201);
-
-  const migrations1 = await res1.json();
-  console.info(migrations1);
-  expect(Array.isArray(migrations1)).toBeTruthy();
-
-  expect(migrations1.length).toBeGreaterThan(0);
-
-  const res2 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/migrations`, {
-    method: "POST",
-  });
-  expect(res2.status).toBe(200);
-
-  const migrations2 = await res2.json();
-  console.info(migrations2);
-  expect(Array.isArray(migrations2)).toBeTruthy();
-
-  expect(migrations2.length).toBe(0);
 });

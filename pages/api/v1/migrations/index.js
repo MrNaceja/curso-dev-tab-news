@@ -1,6 +1,6 @@
 import database from "infra/database";
 import migrator from "node-pg-migrate";
-import { join } from "node:path";
+import Path from "node:path";
 
 export default function handler(req, res) {
   switch (req.method) {
@@ -16,7 +16,7 @@ export default function handler(req, res) {
 const RUN_MIGRATIONS_OPTIONS = {
   direction: "up",
   migrationsTable: "pgmigrations",
-  dir: join("infra", "migrations"),
+  dir: Path.resolve("infra", "migrations"),
   databaseUrl: process.env.DATABASE_URL,
   verbose: true,
 };
