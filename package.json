@@ -14,7 +14,7 @@
     "dev": "npm run scripts:run-dev",
     "test": "npm run services:up && concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand --verbose\"",
     "posttest": "npm run services:down",
-    "test:watch": "jest --watchAll --runInBand",
+    "test:watch": "jest --watchAll --runInBand --verbose",
     "services": "docker compose -f infra/compose.yaml",
     "services:up": "npm run services up -- -d",
     "services:stop": "npm run services stop",

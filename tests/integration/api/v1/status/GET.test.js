@@ -1,6 +1,6 @@
 import { Orchestrator } from "tests/orchestrator";
 
-beforeAll(Orchestrator.beforeAll);
+beforeAll(Orchestrator.prepare);
 
 test("GET on /api/v1/status should be receive 200 status code and a valid status body fields", async () => {
   const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/status`, {

@@ -28,7 +28,7 @@ async function resetDatabase() {
 }
 
 export const Orchestrator = {
-  async beforeAll() {
+  async prepare() {
     await checkNextWebserverIsUp();
     await resetDatabase();
   },

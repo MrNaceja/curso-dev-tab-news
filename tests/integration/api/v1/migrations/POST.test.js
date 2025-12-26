@@ -1,6 +1,6 @@
 import { Orchestrator } from "tests/orchestrator";
 
-beforeAll(Orchestrator.beforeAll);
+beforeAll(Orchestrator.prepare);
 
 test("POST on /api/v1/migrations should be receive 200 status code and exists a valid migrations list and check for granted migration execution", async () => {
   const res1 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/migrations`, {
