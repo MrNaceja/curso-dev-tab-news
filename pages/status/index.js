@@ -1,4 +1,4 @@
-import useSWR from "node_modules/swr/dist/core";
+import useSWR from "swr";
 
 async function fetchApi(endpoint) {
   const response = await fetch(endpoint);
