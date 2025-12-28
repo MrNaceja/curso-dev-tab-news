@@ -1,11 +1,18 @@
 import database from "infra/database";
+import { InternalServerError } from "infra/errors";
 
-export default function handler(req, res) {
-  switch (req.method) {
-    case "GET":
-      return GET(req, res);
-    default:
-      return res.status(405).send();
+export default async function handler(req, res) {
+  try {
+    switch (req.method) {
+      case "GET":
+        return await GET(req, res);
+      default:
+        return res.status(405).send();
+    }
+  } catch (e) {
+    const error = new InternalServerError(e);
+    console.error(`[${req.method}]: /status`, error);
+    return res.status(error.statusCode).json(error);
   }
 }
 
