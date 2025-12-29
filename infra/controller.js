@@ -41,7 +41,10 @@ export class Controller {
 
       return await handler(req, res);
     } catch (e) {
-      const error = new InternalServerError(e);
+      const error = new InternalServerError({
+        cause: e,
+        statusCode: e.statusCode,
+      });
       return res.status(error.statusCode).json(error);
     }
   }

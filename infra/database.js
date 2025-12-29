@@ -1,3 +1,4 @@
+import { ServiceUnavailableError } from "infra/errors";
 import { Client } from "pg";
 
 const catchSSL = () => {
@@ -39,8 +40,12 @@ async function withClientConnected(callback) {
     }
     return result;
   } catch (e) {
-    console.error(e);
-    throw e;
+    const error = new ServiceUnavailableError({
+      message: "Problemas na conexão com Banco de Dados ou execução de querys.",
+      cause: e,
+    });
+    console.error(error);
+    throw error;
   } finally {
     await client.end();
   }
