@@ -1,17 +1,9 @@
+import { Controller } from "infra/controller";
 import database from "infra/database";
 import migrator from "node-pg-migrate";
 import Path from "node:path";
 
-export default function handler(req, res) {
-  switch (req.method) {
-    case "GET":
-      return GET(req, res);
-    case "POST":
-      return POST(req, res);
-    default:
-      return res.status(405).send();
-  }
-}
+const controller = new Controller();
 
 const RUN_MIGRATIONS_OPTIONS = {
   direction: "up",
@@ -21,7 +13,12 @@ const RUN_MIGRATIONS_OPTIONS = {
   verbose: true,
 };
 
-async function GET(req, res) {
+export default controller
+  .GET(listPendingMigrations)
+  .POST(executePendingMigrations)
+  .handle.bind(controller);
+
+async function listPendingMigrations(req, res) {
   return await database.withClientConnected(async (client) => {
     const pendingMigrations = await migrator({
       ...RUN_MIGRATIONS_OPTIONS,
@@ -31,7 +28,8 @@ async function GET(req, res) {
     return res.status(200).send(pendingMigrations);
   });
 }
-async function POST(req, res) {
+
+async function executePendingMigrations(req, res) {
   return await database.withClientConnected(async (client) => {
     const migratedMigrations = await migrator({
       ...RUN_MIGRATIONS_OPTIONS,

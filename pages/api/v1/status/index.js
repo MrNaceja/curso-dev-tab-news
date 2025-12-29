@@ -1,38 +1,7 @@
+import { Controller } from "infra/controller";
 import database from "infra/database";
-import { InternalServerError } from "infra/errors";
 
-export default async function handler(req, res) {
-  try {
-    switch (req.method) {
-      case "GET":
-        return await GET(req, res);
-      default:
-        return res.status(405).send();
-    }
-  } catch (e) {
-    const error = new InternalServerError(e);
-    console.error(`[${req.method}]: /status`, error);
-    return res.status(error.statusCode).json(error);
-  }
-}
-
-async function GET(req, res) {
-  const { version, maxConnections, openedConnections } =
-    await catchDatabaseDependencyMetadata();
-
-  const status = {
-    updated_at: new Date().toISOString(),
-    dependencies: {
-      database: {
-        postgres_version: version,
-        max_connections: maxConnections,
-        opened_connections: openedConnections,
-      },
-    },
-  };
-
-  res.status(200).json(status);
-}
+const controller = new Controller();
 
 const catchDatabaseDependencyMetadata = async () => {
   const versionAndMaxConnectionsQueryResult = await database.query({
@@ -57,3 +26,23 @@ const catchDatabaseDependencyMetadata = async () => {
     version,
   };
 };
+
+export default controller.GET(displaySystemStatus).handle.bind(controller);
+
+async function displaySystemStatus(req, res) {
+  const { version, maxConnections, openedConnections } =
+    await catchDatabaseDependencyMetadata();
+
+  const status = {
+    updated_at: new Date().toISOString(),
+    dependencies: {
+      database: {
+        postgres_version: version,
+        max_connections: maxConnections,
+        opened_connections: openedConnections,
+      },
+    },
+  };
+
+  res.status(200).json(status);
+}
