@@ -44,7 +44,10 @@ export class Controller {
     } catch (e) {
       let error = e;
 
-      if (!(error instanceof ValidationError)) {
+      if (
+        !(error instanceof ValidationError) &&
+        !(error instanceof NotFoundError)
+      ) {
         error = new InternalServerError({
           cause: error,
           statusCode: error.statusCode,
