@@ -64,3 +64,14 @@ export class ServiceUnavailableError extends BaseError {
     });
   }
 }
+
+export class ValidationError extends BaseError {
+  constructor({ message, action }) {
+    super({
+      name: "ValidationError",
+      message,
+      action,
+      statusCode: 400,
+    });
+  }
+}
