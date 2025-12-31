@@ -47,7 +47,7 @@ describe("GET on /api/v1/users/[username]", () => {
           id: expect.stringContaining(userFounded.id),
           username: expect.stringContaining(userTest.username),
           email: expect.stringContaining(userTest.email),
-          password: expect.stringContaining(userTest.password),
+          password: expect.stringContaining(userFounded.password),
         }),
       );
     });
@@ -93,7 +93,7 @@ describe("GET on /api/v1/users/[username]", () => {
           id: expect.stringContaining(userFounded.id),
           username: expect.stringContaining(userTest.username),
           email: expect.stringContaining(userTest.email),
-          password: expect.stringContaining(userTest.password),
+          password: expect.stringContaining(userFounded.password),
         }),
       );
     });

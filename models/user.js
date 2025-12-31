@@ -1,5 +1,6 @@
 import database from "infra/database";
 import { NotFoundError, ValidationError } from "infra/errors";
+import { Security } from "models/security";
 
 async function validateUniqueEmail(email) {
   const existsQuery = await database.query({
@@ -42,6 +43,8 @@ export const User = {
     await validateUniqueEmail(email);
     await validateUniqueUsername(username);
 
+    const securePassword = await Security.securePassword(password);
+
     const insertQuery = await database.query({
       text: `
         INSERT INTO
@@ -52,7 +55,7 @@ export const User = {
           *
         ;
       `.trim(),
-      values: [username, email, password],
+      values: [username, email, securePassword],
     });
 
     const [createdUser] = insertQuery.rows;
