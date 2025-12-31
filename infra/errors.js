@@ -42,11 +42,14 @@ export class MethodNotAllowedError extends BaseError {
 }
 
 export class NotFoundError extends BaseError {
-  constructor() {
+  constructor({
+    message = "Recurso não encontrado",
+    action = "Verifique os cabeçalhos enviados e a formatação da URL",
+  }) {
     super({
-      message: "Recurso não encontrado",
+      message,
+      action,
       name: "NotFoundError",
-      action: "Verifique os cabeçalhos enviados e a formatação da URL",
       statusCode: 404,
     });
   }
@@ -61,6 +64,17 @@ export class ServiceUnavailableError extends BaseError {
       action: "Verifique a disponíbilidade do serviço.",
       statusCode: 503,
       cause,
+    });
+  }
+}
+
+export class ValidationError extends BaseError {
+  constructor({ message, action }) {
+    super({
+      name: "ValidationError",
+      message,
+      action,
+      statusCode: 400,
     });
   }
 }

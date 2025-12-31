@@ -2,6 +2,7 @@ import {
   InternalServerError,
   MethodNotAllowedError,
   NotFoundError,
+  ValidationError,
 } from "infra/errors";
 
 export class Controller {
@@ -41,10 +42,18 @@ export class Controller {
 
       return await handler(req, res);
     } catch (e) {
-      const error = new InternalServerError({
-        cause: e,
-        statusCode: e.statusCode,
-      });
+      let error = e;
+
+      if (
+        !(error instanceof ValidationError) &&
+        !(error instanceof NotFoundError)
+      ) {
+        error = new InternalServerError({
+          cause: error,
+          statusCode: error.statusCode,
+        });
+      }
+
       return res.status(error.statusCode).json(error);
     }
   }

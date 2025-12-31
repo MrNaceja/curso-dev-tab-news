@@ -1,6 +1,6 @@
 import { Orchestrator } from "tests/orchestrator";
 
-beforeAll(Orchestrator.prepare);
+beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
 describe("GET on /api/v1/status", () => {
   describe("with Anonymous user", () => {

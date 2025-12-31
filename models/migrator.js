@@ -7,7 +7,7 @@ const RUN_MIGRATIONS_OPTIONS = {
   migrationsTable: "pgmigrations",
   dir: Path.resolve("infra", "migrations"),
   databaseUrl: process.env.DATABASE_URL,
-  verbose: true,
+  log: () => {},
 };
 
 export const Migrator = {

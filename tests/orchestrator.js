@@ -1,5 +1,6 @@
 import retry from "async-retry";
 import database from "infra/database";
+import { Migrator } from "models/migrator";
 
 function checkNextWebserverIsUp() {
   return retry(
@@ -28,8 +29,12 @@ async function resetDatabase() {
 }
 
 export const Orchestrator = {
-  async prepare() {
+  async prepareCleanEnviroment() {
     await checkNextWebserverIsUp();
     await resetDatabase();
+  },
+  async prepareEnviromentWithMigrationsExecuted() {
+    await Orchestrator.prepareCleanEnviroment();
+    await Migrator.runPending();
   },
 };
