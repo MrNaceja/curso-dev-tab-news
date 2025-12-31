@@ -52,6 +52,7 @@ export class Controller {
           cause: error,
           statusCode: error.statusCode,
         });
+        console.error(error);
       }
 
       return res.status(error.statusCode).json(error);
