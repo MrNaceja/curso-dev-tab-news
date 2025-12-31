@@ -1,7 +1,7 @@
 import { MethodNotAllowedError } from "infra/errors";
 import { Orchestrator } from "tests/orchestrator";
 
-beforeAll(Orchestrator.prepare);
+beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
 describe("ALL another methods (exept GET) on /api/v1/status", () => {
   describe("with Anonymous user", () => {

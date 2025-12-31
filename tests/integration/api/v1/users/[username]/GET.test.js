@@ -1,7 +1,7 @@
 import { NotFoundError } from "infra/errors";
 import { Orchestrator } from "tests/orchestrator";
 
-beforeAll(Orchestrator.prepare);
+beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
 describe("GET on /api/v1/users/[username]", () => {
   describe("with Anonymous user", () => {

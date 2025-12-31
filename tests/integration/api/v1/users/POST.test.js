@@ -1,7 +1,7 @@
 import { ValidationError } from "infra/errors";
 import { Orchestrator } from "tests/orchestrator";
 
-beforeAll(Orchestrator.prepare);
+beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
 describe("POST on /api/v1/users", () => {
   describe("with Anonymous user", () => {
