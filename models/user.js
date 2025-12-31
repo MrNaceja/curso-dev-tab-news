@@ -84,4 +84,50 @@ export const User = {
     }
     return userFounded;
   },
+  async updateByUsername(usernameTarget, { username, email, password }) {
+    const existentUser = await this.findOneByUsername(usernameTarget);
+
+    let fieldsToUpdate = new Map();
+
+    if (username && username !== existentUser.username) {
+      if (username !== usernameTarget) {
+        await validateUniqueUsername(username);
+      }
+      fieldsToUpdate.set("username", username);
+    }
+
+    if (email && email !== existentUser.email) {
+      await validateUniqueEmail(email);
+      fieldsToUpdate.set("email", email);
+    }
+
+    if (password) {
+      const isSamePassword = await Security.comparePassword(
+        password,
+        existentUser.password,
+      );
+      if (!isSamePassword) {
+        const securedPassword = await Security.securePassword(password);
+        fieldsToUpdate.set("password", securedPassword);
+      }
+    }
+
+    if (fieldsToUpdate.size === 0) return;
+
+    fieldsToUpdate = Array.from(fieldsToUpdate.entries());
+    await database.query({
+      text: `
+        UPDATE 
+          users
+        SET
+          ${fieldsToUpdate
+            .map(([field], i) => `${field} = $${i + 1}`)
+            .concat("updated_at = timezone('utc', now())")
+            .join(",")}
+        WHERE
+          username = $${fieldsToUpdate.length + 1}
+      `.trim(),
+      values: fieldsToUpdate.map(([, value]) => value).concat(usernameTarget),
+    });
+  },
 };
