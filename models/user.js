@@ -62,7 +62,7 @@ export const User = {
 
     return createdUser;
   },
-  async findOneByUsername(username) {
+  async findByUsername(username) {
     const findUserQuery = await database.query({
       text: `
         SELECT
@@ -85,7 +85,7 @@ export const User = {
     return userFounded;
   },
   async updateByUsername(usernameTarget, { username, email, password }) {
-    const existentUser = await this.findOneByUsername(usernameTarget);
+    const existentUser = await this.findByUsername(usernameTarget);
 
     let fieldsToUpdate = new Map();
 

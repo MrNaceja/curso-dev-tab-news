@@ -11,7 +11,7 @@ export default controller
 
 async function findUserByUsername(req, res) {
   const { username } = req.query;
-  const userFounded = await User.findOneByUsername(username);
+  const userFounded = await User.findByUsername(username);
   return res.status(200).json(userFounded);
 }
 

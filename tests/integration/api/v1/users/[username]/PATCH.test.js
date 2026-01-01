@@ -8,89 +8,59 @@ beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 describe("PATCH on /api/v1/users/[username]", () => {
   describe("with Anonymous user", () => {
     test("when passing duplicated username", async () => {
-      for (let i = 1; i <= 2; i++) {
-        const createUserRes = await fetch(
-          `${process.env.WEBSERVER_URL}/api/v1/users`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username: `duplicado${i}`,
-              email: `user${i}@email.com`,
-              password: "usuario123",
-            }),
-          },
-        );
-        expect(createUserRes.status).toBe(201);
-      }
+      const userTestA =
+        await Orchestrator.User.withUsername("usernameA").create();
+      const userTestB =
+        await Orchestrator.User.withUsername("usernameB").create();
 
-      const updateUserRes = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/duplicado1`,
+      const res = await fetch(
+        `${process.env.WEBSERVER_URL}/api/v1/users/${userTestA.username}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            username: "duplicado2",
+            username: userTestB.username,
           }),
         },
       );
 
-      const errorBody = await updateUserRes.json();
+      const errorBody = await res.json();
       const expectedDuplicatedUsernameError = new ValidationError({
         message: "Apelido não disponível.",
         action: "Tente outro apelido.",
       });
 
-      expect(updateUserRes.status).toBe(
-        expectedDuplicatedUsernameError.statusCode,
-      );
+      expect(res.status).toBe(expectedDuplicatedUsernameError.statusCode);
       expect(errorBody).toEqual(expectedDuplicatedUsernameError.toJSON());
     });
     test("when passing duplicated email", async () => {
-      for (let i = 3; i <= 4; i++) {
-        const createUserRes = await fetch(
-          `${process.env.WEBSERVER_URL}/api/v1/users`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username: `duplicado${i}`,
-              email: `user${i}@email.com`,
-              password: "usuario123",
-            }),
-          },
-        );
-        expect(createUserRes.status).toBe(201);
-      }
+      const userTestA =
+        await Orchestrator.User.withEmail("userA@email.com").create();
+      const userTestB =
+        await Orchestrator.User.withEmail("userB@email.com").create();
 
-      const updateUserRes = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/duplicado3`,
+      const res = await fetch(
+        `${process.env.WEBSERVER_URL}/api/v1/users/${userTestA.username}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            email: "user4@email.com",
+            email: userTestB.email,
           }),
         },
       );
 
-      const errorBody = await updateUserRes.json();
+      const errorBody = await res.json();
       const expectedDuplicatedEmailError = new ValidationError({
         message: "Email duplicado.",
         action: "Tente outro email.",
       });
 
-      expect(updateUserRes.status).toBe(
-        expectedDuplicatedEmailError.statusCode,
-      );
+      expect(res.status).toBe(expectedDuplicatedEmailError.statusCode);
       expect(errorBody).toEqual(expectedDuplicatedEmailError.toJSON());
     });
     test("when passing inexistent username", async () => {
@@ -112,120 +82,85 @@ describe("PATCH on /api/v1/users/[username]", () => {
       expect(errorBody).toEqual(expectedNotFoundError.toJSON());
     });
     test("when passing a new unique username", async () => {
-      const createUserRes = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: "usernameTest",
-            email: "test@email.com",
-            password: "test123",
-          }),
-        },
-      );
-      expect(createUserRes.status).toBe(201);
+      const userTest = await Orchestrator.User.create();
+
+      const newUniqueUsername = Orchestrator.Mock.internet
+        .username()
+        .replace(/[._-]/g, "");
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/usernameTest`,
+        `${process.env.WEBSERVER_URL}/api/v1/users/${userTest.username}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            username: "usernameTestUpdated",
+            username: newUniqueUsername,
           }),
         },
       );
       expect(res.status).toBe(204);
 
       expect(async () => {
-        const updatedUser = await User.findOneByUsername("usernameTestUpdated");
+        const updatedUser = await User.findByUsername(newUniqueUsername);
         expect(new Date(updatedUser.updated_at).getTime()).toBeGreaterThan(
           new Date(updatedUser.created_at).getTime(),
         );
       }).not.toThrow(NotFoundError);
     });
     test("when passing a new unique email", async () => {
-      const createUserRes = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: "usernameTest",
-            email: "test2@email.com",
-            password: "test123",
-          }),
-        },
-      );
-      expect(createUserRes.status).toBe(201);
+      const userTest = await Orchestrator.User.create();
+      const newUniqueEmail = Orchestrator.Mock.internet.email();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/usernameTest`,
+        `${process.env.WEBSERVER_URL}/api/v1/users/${userTest.username}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            email: "test.updated@email.com",
+            email: newUniqueEmail,
           }),
         },
       );
       expect(res.status).toBe(204);
 
-      const updatedUser = await User.findOneByUsername("usernameTest");
+      const updatedUser = await User.findByUsername(userTest.username);
 
-      expect(updatedUser.email).toEqual("test.updated@email.com");
+      expect(updatedUser.email).toEqual(newUniqueEmail);
       expect(new Date(updatedUser.updated_at).getTime()).toBeGreaterThan(
         new Date(updatedUser.created_at).getTime(),
       );
     });
     test("when passing a new password", async () => {
-      const createUserRes = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: "usernameTest3",
-            email: "test3@email.com",
-            password: "test123",
-          }),
-        },
-      );
-      expect(createUserRes.status).toBe(201);
+      const userTest =
+        await Orchestrator.User.withPassword("initial_password").create();
+      const newPassword = Orchestrator.Mock.internet.password();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/usernameTest3`,
+        `${process.env.WEBSERVER_URL}/api/v1/users/${userTest.username}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            password: "newPassword",
+            password: newPassword,
           }),
         },
       );
       expect(res.status).toBe(204);
 
-      const updatedUser = await User.findOneByUsername("usernameTest3");
+      const updatedUser = await User.findByUsername(userTest.username);
 
       const isSameUpdatedPassword = await Security.comparePassword(
-        "newPassword",
+        newPassword,
         updatedUser.password,
       );
       const isNotUpdatedPassword = await Security.comparePassword(
-        "test123",
+        "initial_password",
         updatedUser.password,
       );
       expect(isSameUpdatedPassword).toBeTruthy();
