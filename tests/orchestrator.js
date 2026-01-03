@@ -59,17 +59,26 @@ export const Orchestrator = {
     },
 
     async create() {
-      const user = await User.create({
-        username:
-          this.username ||
-          Orchestrator.Mock.internet.username().replace(/[_.-]/g, ""),
-        email: this.email || Orchestrator.Mock.internet.email(),
-        password: this.password || Orchestrator.Mock.internet.password(),
-      });
+      const {
+        username = Orchestrator.Mock.internet.username().replace(/[_.-]/g, ""),
+        email = Orchestrator.Mock.internet.email(),
+        password = Orchestrator.Mock.internet.password(),
+      } = this;
+
       this.username = undefined;
       this.email = undefined;
       this.password = undefined;
-      return user;
+
+      const user = await User.create({
+        username,
+        email,
+        password,
+      });
+
+      return {
+        ...user,
+        plainPassword: password,
+      };
     },
   },
   Mock: faker,
