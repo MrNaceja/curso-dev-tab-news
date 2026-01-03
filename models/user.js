@@ -1,5 +1,6 @@
 import database from "infra/database";
 import { NotFoundError, ValidationError } from "infra/errors";
+import { Security } from "models/security";
 
 async function validateUniqueEmail(email) {
   const existsQuery = await database.query({
@@ -42,6 +43,8 @@ export const User = {
     await validateUniqueEmail(email);
     await validateUniqueUsername(username);
 
+    const securePassword = await Security.securePassword(password);
+
     const insertQuery = await database.query({
       text: `
         INSERT INTO
@@ -52,14 +55,14 @@ export const User = {
           *
         ;
       `.trim(),
-      values: [username, email, password],
+      values: [username, email, securePassword],
     });
 
     const [createdUser] = insertQuery.rows;
 
     return createdUser;
   },
-  async findOneByUsername(username) {
+  async findByUsername(username) {
     const findUserQuery = await database.query({
       text: `
         SELECT
@@ -80,5 +83,51 @@ export const User = {
       });
     }
     return userFounded;
+  },
+  async updateByUsername(usernameTarget, { username, email, password }) {
+    const existentUser = await this.findByUsername(usernameTarget);
+
+    let fieldsToUpdate = new Map();
+
+    if (username && username !== existentUser.username) {
+      if (username !== usernameTarget) {
+        await validateUniqueUsername(username);
+      }
+      fieldsToUpdate.set("username", username);
+    }
+
+    if (email && email !== existentUser.email) {
+      await validateUniqueEmail(email);
+      fieldsToUpdate.set("email", email);
+    }
+
+    if (password) {
+      const isSamePassword = await Security.comparePassword(
+        password,
+        existentUser.password,
+      );
+      if (!isSamePassword) {
+        const securedPassword = await Security.securePassword(password);
+        fieldsToUpdate.set("password", securedPassword);
+      }
+    }
+
+    if (fieldsToUpdate.size === 0) return;
+
+    fieldsToUpdate = Array.from(fieldsToUpdate.entries());
+    await database.query({
+      text: `
+        UPDATE 
+          users
+        SET
+          ${fieldsToUpdate
+            .map(([field], i) => `${field} = $${i + 1}`)
+            .concat("updated_at = timezone('utc', now())")
+            .join(",")}
+        WHERE
+          username = $${fieldsToUpdate.length + 1}
+      `.trim(),
+      values: fieldsToUpdate.map(([, value]) => value).concat(usernameTarget),
+    });
   },
 };

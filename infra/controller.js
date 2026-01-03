@@ -26,6 +26,10 @@ export class Controller {
     this.handlers.set("PUT", handler);
     return this;
   }
+  PATCH(handler) {
+    this.handlers.set("PATCH", handler);
+    return this;
+  }
 
   async handle(req, res) {
     try {
@@ -52,6 +56,7 @@ export class Controller {
           cause: error,
           statusCode: error.statusCode,
         });
+        console.error(error);
       }
 
       return res.status(error.statusCode).json(error);
