@@ -1,6 +1,7 @@
 import { UnauthorizedError } from "infra/errors";
 import { Session } from "models/session";
 import { Orchestrator } from "tests/orchestrator";
+import * as Cookie from "cookie";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -88,10 +89,25 @@ describe("POST on api/v1/sessions", () => {
         }),
       );
 
-      expect(
+      const expirationDiffInMs =
         new Date(createdSession.expires_at).getTime() -
-          new Date(createdSession.created_at).getTime(),
-      ).toBe(Session.EXPIRES_AT_IN_MS);
+        new Date(createdSession.created_at).getTime();
+
+      expect(expirationDiffInMs).toBe(Session.EXPIRES_AT_IN_MS);
+
+      const cookies = res.headers.getSetCookie().reduce((jar, cookie) => {
+        const parsedCookie = Cookie.parseSetCookie(cookie);
+        jar[parsedCookie.name] = parsedCookie;
+        return jar;
+      }, {});
+
+      expect(cookies.session_id).toEqual({
+        name: "session_id",
+        value: createdSession.id,
+        maxAge: Session.EXPIRES_AT_IN_MS / 1000,
+        path: "/",
+        httpOnly: true,
+      });
     });
   });
 });
