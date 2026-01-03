@@ -43,14 +43,27 @@ export class MethodNotAllowedError extends BaseError {
 
 export class NotFoundError extends BaseError {
   constructor({
-    message = "Recurso não encontrado",
-    action = "Verifique os cabeçalhos enviados e a formatação da URL",
+    message = "Recurso não encontrado.",
+    action = "Verifique os cabeçalhos enviados e a formatação da URL.",
   }) {
     super({
       message,
       action,
       name: "NotFoundError",
       statusCode: 404,
+    });
+  }
+}
+export class UnauthorizedError extends BaseError {
+  constructor({
+    message = "Usuário não autenticado.",
+    action = "Verifique as credenciais informadas.",
+  }) {
+    super({
+      message,
+      action,
+      name: "UnauthorizedError",
+      statusCode: 401,
     });
   }
 }

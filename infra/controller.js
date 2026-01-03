@@ -2,6 +2,7 @@ import {
   InternalServerError,
   MethodNotAllowedError,
   NotFoundError,
+  UnauthorizedError,
   ValidationError,
 } from "infra/errors";
 
@@ -50,11 +51,11 @@ export class Controller {
 
       if (
         !(error instanceof ValidationError) &&
-        !(error instanceof NotFoundError)
+        !(error instanceof NotFoundError) &&
+        !(error instanceof UnauthorizedError)
       ) {
         error = new InternalServerError({
           cause: error,
-          statusCode: error.statusCode,
         });
         console.error(error);
       }
