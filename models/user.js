@@ -84,6 +84,28 @@ export const User = {
     }
     return userFounded;
   },
+  async findByEmail(email) {
+    const findUserQuery = await database.query({
+      text: `
+        SELECT
+          *
+        FROM
+          users
+        WHERE
+          LOWER(email) = LOWER($1)
+        LIMIT 1
+      `.trim(),
+      values: [email],
+    });
+    const [userFounded] = findUserQuery.rows;
+    if (!userFounded) {
+      throw new NotFoundError({
+        message: "Nenhum usuário encontrado para o email fornecido.",
+        action: "Tente buscar por outro email.",
+      });
+    }
+    return userFounded;
+  },
   async updateByUsername(usernameTarget, { username, email, password }) {
     const existentUser = await this.findByUsername(usernameTarget);
 
