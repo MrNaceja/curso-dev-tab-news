@@ -1,7 +1,6 @@
 import { UnauthorizedError } from "infra/errors";
 import { Session } from "models/session";
 import { Orchestrator } from "tests/orchestrator";
-import * as Cookie from "cookie";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -95,11 +94,7 @@ describe("POST on api/v1/sessions", () => {
 
       expect(expirationDiffInMs).toBe(Session.EXPIRES_AT_IN_MS);
 
-      const cookies = res.headers.getSetCookie().reduce((jar, cookie) => {
-        const parsedCookie = Cookie.parseSetCookie(cookie);
-        jar[parsedCookie.name] = parsedCookie;
-        return jar;
-      }, {});
+      const cookies = Orchestrator.extractCookiesFromResponse(res);
 
       expect(cookies.session_id).toEqual({
         name: "session_id",

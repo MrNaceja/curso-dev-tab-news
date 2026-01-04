@@ -2,7 +2,9 @@ import { faker } from "@faker-js/faker";
 import retry from "async-retry";
 import database from "infra/database";
 import { Migrator } from "models/migrator";
+import { Session } from "models/session";
 import { User } from "models/user";
+import * as Cookie from "cookie";
 
 function checkNextWebserverIsUp() {
   return retry(
@@ -81,5 +83,52 @@ export const Orchestrator = {
       };
     },
   },
+  Session: {
+    user: undefined,
+    withUser(user) {
+      this.user = user;
+      return this;
+    },
+    withRandomNewUser() {
+      this.user = Orchestrator.User.create();
+      return this;
+    },
+    async create() {
+      let { user } = this;
+      this.user = undefined;
+
+      if (user instanceof Promise) {
+        user = await user;
+      }
+
+      const session = await Session.create(user.id);
+
+      return {
+        ...session,
+        user,
+      };
+    },
+  },
   Mock: faker,
+  extractCookiesFromResponse(res) {
+    return res.headers.getSetCookie().reduce((jar, cookie) => {
+      const parsedCookie = Cookie.parseSetCookie(cookie);
+      jar[parsedCookie.name] = parsedCookie;
+      return jar;
+    }, {});
+  },
+  async withTimeTravel(cb, timeToTravelInMs) {
+    jest.useFakeTimers({
+      now: timeToTravelInMs,
+    });
+
+    const result = cb();
+    if (result instanceof Promise) {
+      await result;
+    }
+
+    jest.useRealTimers();
+
+    return result;
+  },
 };

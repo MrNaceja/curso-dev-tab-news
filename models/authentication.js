@@ -35,4 +35,17 @@ export const Authentication = {
     const session = await Session.create(user.id);
     return session;
   },
+  async renewUserSession(sessionId) {
+    try {
+      return await Session.renew(sessionId);
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        throw new UnauthorizedError({
+          message: "Usuário não possui sessão ativa.",
+          action: "Tente efetuar o login novamente",
+        });
+      }
+      throw e;
+    }
+  },
 };
