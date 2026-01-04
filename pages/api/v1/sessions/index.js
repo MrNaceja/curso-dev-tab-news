@@ -6,6 +6,7 @@ const controller = new Controller();
 export default controller
   .POST(createSession)
   .PATCH(renewSession)
+  .DELETE(expireSession)
   .handle.bind(controller);
 
 async function createSession(req, res) {
@@ -39,4 +40,21 @@ async function renewSession(req, res) {
   });
 
   return res.status(204).end();
+}
+
+async function expireSession(req, res) {
+  const sessionId = this.getCookie("session_id");
+
+  await Authentication.expireUserSession(sessionId);
+
+  this.setCookie({
+    name: "session_id",
+    value: "",
+    path: "/",
+    maxAge: -1,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  res.status(204).end();
 }

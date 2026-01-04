@@ -66,15 +66,43 @@ export class Controller {
   }
 
   /**
-   * @param {Cookie.Cookies} cookie
+   * @param {Cookie.SetCookie} cookie
    */
   setCookie(cookie) {
     this.res?.setHeader("Set-Cookie", Cookie.stringifySetCookie(cookie));
     return this;
   }
 
+  /**
+   * @param {string} name
+   * @returns {string|undefined}
+   */
   getCookie(name) {
     return this.req?.cookies[name];
+  }
+
+  /**
+   * @param {string} name
+   * @returns {boolean}
+   */
+  hasCookie(name) {
+    return !!this.req?.cookies[name];
+  }
+
+  /**
+   * @param {string} name
+   * @param {Omit<Cookie.SetCookie, 'name' | 'maxAge' | 'value'>} props
+   */
+  removeCookie(name, props) {
+    if (this.hasCookie(name)) {
+      this.setCookie({
+        name,
+        ...props,
+        value: "",
+        maxAge: -1,
+      });
+    }
+    return this;
   }
 
   async handle(req, res) {
@@ -106,6 +134,14 @@ export class Controller {
           cause: error,
         });
         console.error(error);
+      }
+
+      if (error instanceof UnauthorizedError) {
+        this.removeCookie("session_id", {
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+        });
       }
 
       return res.status(error.statusCode).json(error);
