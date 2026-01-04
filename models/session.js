@@ -24,7 +24,37 @@ export const Session = {
     const [session] = insertQuery.rows;
     return session;
   },
-  async findActiveSessionById(id) {
+  async findById(id) {
+    if (!id) {
+      throw new NotFoundError({
+        message: "Nenhuma sessão encontrado para o id fornecido.",
+        action: "Verifique os parâmetros fornecidos.",
+      });
+    }
+
+    const findSessionQuery = await database.query({
+      text: `
+        SELECT
+          *
+        FROM
+          sessions
+        WHERE TRUE
+          AND id = $1 
+        LIMIT 1;
+      `.trim(),
+      values: [id],
+    });
+
+    const [sessionFounded] = findSessionQuery.rows;
+    if (!sessionFounded) {
+      throw new NotFoundError({
+        message: "Nenhuma sessão encontrado para o id fornecido.",
+        action: "Verifique os parâmetros fornecidos.",
+      });
+    }
+    return sessionFounded;
+  },
+  async findValidById(id) {
     if (!id) {
       throw new NotFoundError({
         message: "Nenhuma sessão encontrado para o id fornecido.",
@@ -56,7 +86,7 @@ export const Session = {
     return activeSessionFounded;
   },
   async updateById(id, { expiresAt }) {
-    const existentActiveSession = await this.findActiveSessionById(id);
+    const existentActiveSession = await this.findValidById(id);
 
     let fieldsToUpdate = new Map();
 
@@ -82,11 +112,18 @@ export const Session = {
       values: fieldsToUpdate.map(([, value]) => value).concat(id),
     });
   },
-  async renew(id) {
+  async renewById(id) {
     const newExpiresAt = new Date(Date.now() + expiresAt30DaysInMs);
     const renewedSession = await Session.updateById(id, {
       expiresAt: newExpiresAt,
     });
     return renewedSession;
+  },
+  async invalidateById(id) {
+    const newExpiresAt = new Date(Date.now() - expiresAt30DaysInMs);
+    const expiredSession = await Session.updateById(id, {
+      expiresAt: newExpiresAt,
+    });
+    return expiredSession;
   },
 };
