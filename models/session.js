@@ -54,7 +54,7 @@ export const Session = {
     }
     return sessionFounded;
   },
-  async findActiveById(id) {
+  async findValidById(id) {
     if (!id) {
       throw new NotFoundError({
         message: "Nenhuma sessão encontrado para o id fornecido.",
@@ -86,7 +86,7 @@ export const Session = {
     return activeSessionFounded;
   },
   async updateById(id, { expiresAt }) {
-    const existentActiveSession = await this.findActiveById(id);
+    const existentActiveSession = await this.findValidById(id);
 
     let fieldsToUpdate = new Map();
 
@@ -119,7 +119,7 @@ export const Session = {
     });
     return renewedSession;
   },
-  async expireById(id) {
+  async invalidateById(id) {
     const newExpiresAt = new Date(Date.now() - expiresAt30DaysInMs);
     const expiredSession = await Session.updateById(id, {
       expiresAt: newExpiresAt,

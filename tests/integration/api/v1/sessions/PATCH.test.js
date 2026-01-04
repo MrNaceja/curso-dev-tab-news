@@ -71,7 +71,7 @@ describe("PATCH on /api/v1/sessions", () => {
 
       expect(res.status).toBe(204);
 
-      const renewedSession = await Session.findActiveById(
+      const renewedSession = await Session.findValidById(
         authenticatedUserSessionTest.id,
       );
 

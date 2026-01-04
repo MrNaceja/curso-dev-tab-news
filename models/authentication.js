@@ -48,9 +48,9 @@ export const Authentication = {
       throw e;
     }
   },
-  async expireUserSession(sessionId) {
+  async invalidateUserSession(sessionId) {
     try {
-      return await Session.expireById(sessionId);
+      return await Session.invalidateById(sessionId);
     } catch (e) {
       if (e instanceof NotFoundError) {
         throw new UnauthorizedError({

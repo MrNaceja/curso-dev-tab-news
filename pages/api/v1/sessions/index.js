@@ -6,7 +6,7 @@ const controller = new Controller();
 export default controller
   .POST(createSession)
   .PATCH(renewSession)
-  .DELETE(expireSession)
+  .DELETE(invalidateSession)
   .handle.bind(controller);
 
 async function createSession(req, res) {
@@ -42,10 +42,10 @@ async function renewSession(req, res) {
   return res.status(204).end();
 }
 
-async function expireSession(req, res) {
+async function invalidateSession(req, res) {
   const sessionId = this.getCookie("session_id");
 
-  await Authentication.expireUserSession(sessionId);
+  await Authentication.invalidateUserSession(sessionId);
 
   this.setCookie({
     name: "session_id",
