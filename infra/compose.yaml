@@ -9,6 +9,6 @@ services:
   email:
     container_name: "local-email-mailcatcher"
     image: "sj26/mailcatcher"
-    ports: 
+    ports:
       - "1025:1025"
       - "1080:1080"
