@@ -5,6 +5,7 @@ import { Migrator } from "models/migrator";
 import { Session } from "models/session";
 import { User } from "models/user";
 import * as Cookie from "cookie";
+import { emailHttpUrl } from "infra/email";
 
 function checkNextWebserverIsUp() {
   return retry(
@@ -27,12 +28,34 @@ function checkNextWebserverIsUp() {
     },
   );
 }
+function checkEmailServersIsUp() {
+  return retry(
+    async () => {
+      const res = await fetch(emailHttpUrl);
+
+      if (!res.ok) throw new Error("Email servers is not ready, retrying...");
+    },
+    {
+      retries: 10,
+      maxTimeout: 1000,
+      onRetry(fail, attempt) {
+        console.warn(
+          `Attempt #${attempt} - Fail on checking email servers`,
+          fail,
+        );
+      },
+    },
+  );
+}
 
 async function resetDatabase() {
   await database.query("DROP SCHEMA PUBLIC CASCADE; CREATE SCHEMA PUBLIC;");
 }
 
 export const Orchestrator = {
+  checkNextWebserverIsUp,
+  checkEmailServersIsUp,
+
   async prepareCleanEnviroment() {
     await checkNextWebserverIsUp();
     await resetDatabase();
@@ -110,6 +133,28 @@ export const Orchestrator = {
     },
   },
   Mock: faker,
+  Email: {
+    async readLatestEmail() {
+      const fetchEmailsRes = await fetch(`${emailHttpUrl}/messages`);
+      const emails = await fetchEmailsRes.json();
+      const latestEmail = emails.pop();
+
+      const fetchEmailBodyRes = await fetch(
+        `${emailHttpUrl}/messages/${latestEmail.id}.plain`,
+      );
+      const latestEmailBody = await fetchEmailBodyRes.text();
+
+      return {
+        from: latestEmail.sender,
+        to: latestEmail.recipients,
+        subject: latestEmail.subject,
+        body: latestEmailBody.trim(),
+      };
+    },
+    clearInbox() {
+      return fetch(`${emailHttpUrl}/messages`, { method: "DELETE" });
+    },
+  },
   extractCookiesFromResponse(res) {
     return res.headers.getSetCookie().reduce((jar, cookie) => {
       const parsedCookie = Cookie.parseSetCookie(cookie);
