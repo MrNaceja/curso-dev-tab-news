@@ -34,6 +34,7 @@ describe("POST on /api/v1/users", () => {
           username: expect.stringContaining(userTest.username),
           email: expect.stringContaining(userTest.email),
           password: expect.stringContaining(createdUser.password),
+          features: ["read:activation-token"],
         }),
       );
 

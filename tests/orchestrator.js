@@ -55,16 +55,19 @@ async function resetDatabase() {
 export const Orchestrator = {
   checkNextWebserverIsUp,
   checkEmailServersIsUp,
-
-  async prepareCleanEnviroment() {
+  async prepareServices() {
     await checkNextWebserverIsUp();
+    await checkEmailServersIsUp();
+  },
+  async prepareCleanEnviroment() {
+    await Orchestrator.prepareServices();
     await resetDatabase();
+    await Orchestrator.Email.clearInbox();
   },
   async prepareEnviromentWithMigrationsExecuted() {
     await Orchestrator.prepareCleanEnviroment();
     await Migrator.runPending();
   },
-
   User: {
     username: undefined,
     email: undefined,

@@ -45,17 +45,19 @@ export const User = {
 
     const securePassword = await Security.securePassword(password);
 
+    const features = ["read:activation-token"];
+
     const insertQuery = await database.query({
       text: `
         INSERT INTO
-          users (username, email, password)
+          users (username, email, password, features)
         VALUES 
-          ($1, $2, $3)
+          ($1, $2, $3, $4)
         RETURNING 
           *
         ;
       `.trim(),
-      values: [username, email, securePassword],
+      values: [username, email, securePassword, features],
     });
 
     const [createdUser] = insertQuery.rows;
