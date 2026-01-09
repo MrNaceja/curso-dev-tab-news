@@ -90,7 +90,7 @@ export const Session = {
 
     let fieldsToUpdate = new Map();
 
-    if (expiresAt && expiresAt !== existentActiveSession.expiresAt) {
+    if (expiresAt && expiresAt !== existentActiveSession.expires_at) {
       fieldsToUpdate.set("expires_at", expiresAt);
     }
 
