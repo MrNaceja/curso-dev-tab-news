@@ -16,6 +16,9 @@ const emailSmtpTransporter = createTransport({
 
 export const Email = {
   from(from) {
+    if (!from.startsWith("<")) {
+      from = `<${from}>`;
+    }
     this._from = from;
     return this;
   },
@@ -23,7 +26,7 @@ export const Email = {
     if (to.length === 1 && Array.isArray(to[0])) {
       to = to[0];
     }
-    this._to = to;
+    this._to = to.map((t) => (t.startsWith("<") ? t : `<${t}>`));
     return this;
   },
   async send(subject, body) {
