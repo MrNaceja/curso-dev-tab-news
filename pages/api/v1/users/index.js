@@ -1,4 +1,5 @@
 import { User } from "models/user";
+import { UserActivation } from "models/user-activation";
 
 const { Controller } = require("infra/controller");
 
@@ -13,5 +14,6 @@ async function createUser(req, res) {
     email,
     password,
   });
+  await UserActivation.requestUserActivation(createdUser);
   return res.status(201).json(createdUser);
 }
