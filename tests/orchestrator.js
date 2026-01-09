@@ -142,6 +142,8 @@ export const Orchestrator = {
       const emails = await fetchEmailsRes.json();
       const latestEmail = emails.pop();
 
+      if (!latestEmail) return;
+
       const fetchEmailBodyRes = await fetch(
         `${emailHttpUrl}/messages/${latestEmail.id}.plain`,
       );
