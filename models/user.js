@@ -64,6 +64,28 @@ export const User = {
 
     return createdUser;
   },
+  async findById(id) {
+    const findUserQuery = await database.query({
+      text: `
+        SELECT
+          *
+        FROM
+          users
+        WHERE
+          id = $1
+        LIMIT 1
+      `.trim(),
+      values: [id],
+    });
+    const [userFounded] = findUserQuery.rows;
+    if (!userFounded) {
+      throw new NotFoundError({
+        message: "Nenhum usuário encontrado para o username fornecido.",
+        action: "Tente buscar por outro username.",
+      });
+    }
+    return userFounded;
+  },
   async findByUsername(username) {
     const findUserQuery = await database.query({
       text: `
@@ -108,6 +130,20 @@ export const User = {
     }
     return userFounded;
   },
+  async setFeaturesById(id, features) {
+    await database.query({
+      text: `
+        UPDATE 
+          users
+        SET
+          features = $2,
+          updated_at = timezone('utc', now())
+        WHERE
+          id = $1
+      `.trim(),
+      values: [id, features],
+    });
+  },
   async updateByUsername(usernameTarget, { username, email, password }) {
     const existentUser = await this.findByUsername(usernameTarget);
 
@@ -139,7 +175,7 @@ export const User = {
     if (fieldsToUpdate.size === 0) return;
 
     fieldsToUpdate = Array.from(fieldsToUpdate.entries());
-    await database.query({
+    const updateQuery = await database.query({
       text: `
         UPDATE 
           users
@@ -150,8 +186,12 @@ export const User = {
             .join(",")}
         WHERE
           username = $${fieldsToUpdate.length + 1}
+        RETURNING
+          *
       `.trim(),
       values: fieldsToUpdate.map(([, value]) => value).concat(usernameTarget),
     });
+    const [updated] = updateQuery.rows;
+    return updated;
   },
 };

@@ -39,7 +39,7 @@ async function renewSession(req, res) {
     secure: process.env.NODE_ENV === "production",
   });
 
-  return res.status(204).end();
+  return res.status(204).send();
 }
 
 async function invalidateSession(req, res) {
@@ -56,5 +56,5 @@ async function invalidateSession(req, res) {
     secure: process.env.NODE_ENV === "production",
   });
 
-  res.status(204).end();
+  res.status(204).send();
 }

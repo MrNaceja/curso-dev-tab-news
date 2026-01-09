@@ -20,5 +20,5 @@ async function updateUserByUsername(req, res) {
   const { username, email, password } = req.body;
 
   await User.updateByUsername(usernameTarget, { username, password, email });
-  return res.status(204).end();
+  return res.status(204).send();
 }

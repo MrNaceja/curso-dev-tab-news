@@ -167,6 +167,13 @@ export const Orchestrator = {
       return jar;
     }, {});
   },
+  extractActivationTokenFromActivationEmailBody(activationEmailBody) {
+    const [, activationUrl] = activationEmailBody.match(/(http?.*)\n/);
+    const extractedActivationToken = new URL(activationUrl).pathname
+      .split("/")
+      .pop();
+    return extractedActivationToken;
+  },
   async withTimeTravel(cb, timeToTravelInMs) {
     jest.useFakeTimers({
       now: timeToTravelInMs,

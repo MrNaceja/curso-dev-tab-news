@@ -52,19 +52,18 @@ describe("Registration flow with success", () => {
     );
     expect(activationEmail.body).toContain(user.username);
 
-    const [, extractedActivationToken] = activationEmail.body.match(
-      /[?&]token=([a-f0-9-]+)/,
-    );
+    const activationToken =
+      Orchestrator.extractActivationTokenFromActivationEmailBody(
+        activationEmail.body,
+      );
 
-    expect(extractedActivationToken).toBeDefined();
+    expect(activationToken).toBeDefined();
 
     expect(activationEmail.body).toContain(
-      UserActivation.generateActivationLink(extractedActivationToken),
+      UserActivation.generateActivationLink(activationToken),
     );
 
-    const activation = await UserActivation.findValidById(
-      extractedActivationToken,
-    );
+    const activation = await UserActivation.findValidById(activationToken);
 
     const expirationDiffInMs =
       new Date(activation.expires_at).getTime() -
@@ -72,7 +71,7 @@ describe("Registration flow with success", () => {
 
     expect(activation).toEqual(
       expect.objectContaining({
-        id: extractedActivationToken,
+        id: activationToken,
         user_id: user.id,
         activated_at: null,
         created_at: expect.any(Date),
@@ -82,7 +81,29 @@ describe("Registration flow with success", () => {
     );
     expect(expirationDiffInMs).toBe(UserActivation.EXPIRES_AT_IN_MS);
   });
-  test("Activate account", async () => {});
+  test("Activate account", async () => {
+    const activationEmail = await Orchestrator.Email.readLatestEmail();
+    const activationToken =
+      Orchestrator.extractActivationTokenFromActivationEmailBody(
+        activationEmail.body,
+      );
+    const res = await fetch(
+      `${process.env.WEBSERVER_URL}/api/v1/users/activate/${activationToken}`,
+      {
+        method: "PATCH",
+      },
+    );
+
+    expect(res.status).toBe(204);
+
+    const activation = await UserActivation.findById(activationToken);
+    expect(activation.activated_at).not.toBeNull();
+    expect(activation.activated_at).toBeInstanceOf(Date);
+
+    const activatedUser = await User.findByUsername(userTest.username);
+
+    expect(activatedUser.features).toEqual(["create:session"]);
+  });
   test("Create a authenticated session (login)", async () => {});
   test("Call authenticated/private endpoint", async () => {});
 });
