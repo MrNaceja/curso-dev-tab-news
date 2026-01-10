@@ -1,6 +1,7 @@
 import database from "infra/database";
 import { Email } from "infra/email";
 import { NotFoundError } from "infra/errors";
+import { Authorization } from "models/authorization";
 import { User } from "models/user";
 
 const expiresAt15MinutesInMs = 60 * 15 * 1000;
@@ -111,8 +112,11 @@ export const UserActivation = {
         ].join("\n"),
       );
   },
-  async updateById(id, { expiresAt, activatedAt }) {
-    const existentActiveActivation = await this.findValidById(id);
+  async updateBy(activationOrId, { expiresAt, activatedAt }) {
+    let existentActiveActivation = activationOrId;
+    if (typeof activationOrId === "string") {
+      existentActiveActivation = await this.findValidById(activationOrId);
+    }
 
     let fieldsToUpdate = new Map();
 
@@ -140,19 +144,24 @@ export const UserActivation = {
         RETURNING
           *
       `.trim(),
-      values: fieldsToUpdate.map(([, value]) => value).concat(id),
+      values: fieldsToUpdate
+        .map(([, value]) => value)
+        .concat(existentActiveActivation.id),
     });
     const [updated] = updateQuery.rows;
     return updated;
   },
   async activate(id) {
     const activatedAt = new Date();
-    const activatedActivation = await UserActivation.updateById(id, {
+    const activation = await this.findValidById(id);
+    const userToActivate = await User.findById(activation.user_id);
+    Authorization.validateFeatures(userToActivate.features, ["activate:user"]);
+
+    const activatedActivation = await UserActivation.updateBy(activation, {
       activatedAt,
     });
-    const activatedUser = await User.findById(activatedActivation.user_id);
     await User.setFeaturesById(
-      activatedUser.id,
+      userToActivate.id,
       "create:session",
       "read:session",
       "invalidate:session",
