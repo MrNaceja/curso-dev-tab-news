@@ -67,6 +67,19 @@ export class UnauthorizedError extends BaseError {
     });
   }
 }
+export class ForbiddenError extends BaseError {
+  constructor({
+    message = "Acesso negado.",
+    action = "Verifique as permissões (features) concedidas.",
+  }) {
+    super({
+      message,
+      action,
+      name: "ForbiddenError",
+      statusCode: 403,
+    });
+  }
+}
 
 export class ServiceUnavailableError extends BaseError {
   constructor({ message, cause }) {
