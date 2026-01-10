@@ -1,7 +1,6 @@
+import { Controller } from "infra/controller";
 import { User } from "models/user";
 import { UserActivation } from "models/user-activation";
-
-const { Controller } = require("infra/controller");
 
 const controller = new Controller();
 

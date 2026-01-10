@@ -1,6 +1,5 @@
+import { Controller } from "infra/controller";
 import { User } from "models/user";
-
-const { Controller } = require("infra/controller");
 
 const controller = new Controller();
 
