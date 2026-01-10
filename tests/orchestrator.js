@@ -113,7 +113,12 @@ export const Orchestrator = {
       const user = await this.create();
       const activation = await UserActivation.create(user.id);
       await UserActivation.activate(activation.id);
-      return user;
+      const activatedUser = await User.findById(user.id);
+
+      return {
+        ...activatedUser,
+        plainPassword: user.plainPassword,
+      };
     },
   },
   Session: {
@@ -124,6 +129,10 @@ export const Orchestrator = {
     },
     withRandomNewUser() {
       this.user = Orchestrator.User.create();
+      return this;
+    },
+    withRandomNewActivatedUser() {
+      this.user = Orchestrator.User.createActivated();
       return this;
     },
     async create() {

@@ -58,7 +58,7 @@ describe("DELETE on /api/v1/sessions", () => {
     });
     test("with active and valid session cookie", async () => {
       const authenticatedUserSessionTest =
-        await Orchestrator.Session.withRandomNewUser().create();
+        await Orchestrator.Session.withRandomNewActivatedUser().create();
 
       const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
         method: "DELETE",

@@ -62,6 +62,8 @@ export const Session = {
       });
     }
 
+    const now = new Date().toISOString();
+
     const findSessionQuery = await database.query({
       text: `
         SELECT
@@ -70,10 +72,10 @@ export const Session = {
           sessions
         WHERE TRUE
           AND id = $1 
-          AND expires_at > timezone('utc', now()) 
+          AND expires_at > timezone('utc', $2::timestamptz) 
         LIMIT 1;
       `.trim(),
-      values: [id],
+      values: [id, now],
     });
 
     const [activeSessionFounded] = findSessionQuery.rows;

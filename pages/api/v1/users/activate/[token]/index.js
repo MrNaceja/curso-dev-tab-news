@@ -3,7 +3,9 @@ import { UserActivation } from "models/user-activation";
 
 const controller = new Controller();
 
-export default controller.PATCH(activateUser).handle.bind(controller);
+export default controller
+  .PATCH(controller.withAuthorizedFeaturesCan("activate:user"), activateUser)
+  .handle.bind(controller);
 
 async function activateUser(req, res) {
   const { token: activationToken } = req.query;

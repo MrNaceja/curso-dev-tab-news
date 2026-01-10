@@ -1,12 +1,16 @@
 import { Controller } from "infra/controller";
 import { Authentication } from "models/authentication";
 import { Session } from "models/session";
+
 const controller = new Controller();
 
 export default controller
-  .POST(controller.withAuthorizatedFeaturesCan("create:session"), createSession)
-  .PATCH(renewSession)
-  .DELETE(invalidateSession)
+  .POST(controller.withAuthorizedFeaturesCan("create:session"), createSession)
+  .PATCH(controller.withAuthorizedFeaturesCan("renew:session"), renewSession)
+  .DELETE(
+    controller.withAuthorizedFeaturesCan("invalidate:session"),
+    invalidateSession,
+  )
   .handle.bind(controller);
 
 async function createSession(req, res) {

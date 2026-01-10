@@ -33,7 +33,7 @@ describe("PATCH on /api/v1/sessions", () => {
       const past30DaysInMs = Date.now() - Session.EXPIRES_AT_IN_MS;
 
       const authenticatedUserSessionTest = await Orchestrator.withTimeTravel(
-        async () => Orchestrator.Session.withRandomNewUser().create(),
+        async () => Orchestrator.Session.withRandomNewActivatedUser().create(),
         past30DaysInMs,
       );
 
@@ -58,7 +58,7 @@ describe("PATCH on /api/v1/sessions", () => {
     });
     test("with active and valid session cookie", async () => {
       const authenticatedUserSessionTest =
-        await Orchestrator.Session.withRandomNewUser().create();
+        await Orchestrator.Session.withRandomNewActivatedUser().create();
 
       const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
         method: "PATCH",

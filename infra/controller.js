@@ -41,7 +41,7 @@ export class Controller {
       const sessionId = this.getCookie("session_id");
 
       const anonymousUser = {
-        features: ["read:activation_token", "create:session", "create:user"],
+        features: ["activate:user", "create:session", "create:user"],
       };
       let user = anonymousUser;
       if (sessionId) {
@@ -53,6 +53,10 @@ export class Controller {
         ...req.context,
         user,
       };
+      console.info(
+        `Request ${sessionId ? "authenticated" : "anonymous"} user`,
+        user,
+      );
       next();
     });
   }
@@ -155,7 +159,7 @@ export class Controller {
     return this;
   }
 
-  withAuthorizatedFeaturesCan(...features) {
+  withAuthorizedFeaturesCan(...features) {
     return function (req, _, next) {
       Authorization.validateFeatures(req.context.user.features, features);
       next();

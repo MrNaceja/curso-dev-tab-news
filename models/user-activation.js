@@ -67,6 +67,8 @@ export const UserActivation = {
       });
     }
 
+    const now = new Date().toISOString();
+
     const findActivationQuery = await database.query({
       text: `
         SELECT
@@ -75,11 +77,11 @@ export const UserActivation = {
           user_activations
         WHERE TRUE
           AND id = $1 
-          AND expires_at > timezone('utc', now()) 
+          AND expires_at > timezone('utc', $2::timestamptz) 
           AND activated_at IS NULL
         LIMIT 1;
       `.trim(),
-      values: [id],
+      values: [id, now],
     });
 
     const [activationFounded] = findActivationQuery.rows;
@@ -149,7 +151,11 @@ export const UserActivation = {
       activatedAt,
     });
     const activatedUser = await User.findById(activatedActivation.user_id);
-    await User.setFeaturesById(activatedUser.id, ["create:session"]);
+    await User.setFeaturesById(activatedUser.id, [
+      "create:session",
+      "invalidate:session",
+      "renew:session",
+    ]);
     return activatedActivation;
   },
 };

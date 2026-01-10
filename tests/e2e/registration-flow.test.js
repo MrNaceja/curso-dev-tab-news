@@ -34,7 +34,7 @@ describe("Registration flow with success", () => {
         username: expect.stringContaining(userTest.username),
         email: expect.stringContaining(userTest.email),
         password: expect.stringContaining(createdUser.password),
-        features: ["read:activation-token"],
+        features: ["activate:user"],
       }),
     );
   });
@@ -102,7 +102,13 @@ describe("Registration flow with success", () => {
 
     const activatedUser = await User.findByUsername(userTest.username);
 
-    expect(activatedUser.features).toEqual(["create:session"]);
+    expect(activatedUser.features).toEqual(
+      expect.arrayContaining([
+        "create:session",
+        "renew:session",
+        "invalidate:session",
+      ]),
+    );
   });
   test("Create a authenticated session (login)", async () => {
     const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {

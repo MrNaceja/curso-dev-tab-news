@@ -45,7 +45,7 @@ export const User = {
 
     const securePassword = await Security.securePassword(password);
 
-    const features = ["read:activation-token"];
+    const features = ["activate:user"];
 
     const insertQuery = await database.query({
       text: `
@@ -140,6 +140,8 @@ export const User = {
           updated_at = timezone('utc', now())
         WHERE
           id = $1
+        RETURNING
+          *
       `.trim(),
       values: [id, features],
     });
