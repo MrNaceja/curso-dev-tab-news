@@ -4,7 +4,13 @@ import { UserActivation } from "models/user-activation";
 
 const controller = new Controller();
 
-export default controller.POST(createUser).handle.bind(controller);
+export default controller
+  .POST(createUser)
+  .GET(
+    controller.withAuthorizedFeaturesOnly("read:session"),
+    showAuthenticatedUser,
+  )
+  .handle.bind(controller);
 
 async function createUser(req, res) {
   const { username, email, password } = req.body;
@@ -15,4 +21,9 @@ async function createUser(req, res) {
   });
   await UserActivation.requestUserActivation(createdUser);
   return res.status(201).json(createdUser);
+}
+
+async function showAuthenticatedUser(req, res) {
+  const { user } = req.context;
+  return res.status(200).send(user);
 }

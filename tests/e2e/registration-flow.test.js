@@ -1,6 +1,7 @@
 import { User } from "models/user";
 import { UserActivation } from "models/user-activation";
 import { Orchestrator } from "tests/orchestrator";
+import * as Cookie from "cookie";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -10,6 +11,7 @@ describe("Registration flow with success", () => {
     email: "registration.flow@email.com",
     password: "registration_flow",
   };
+  let session_id;
   test("Create user account", async () => {
     const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
       method: "POST",
@@ -122,6 +124,19 @@ describe("Registration flow with success", () => {
       }),
     });
     expect(res.status).toBe(201);
+    const cookies = Orchestrator.extractCookiesFromResponse(res);
+    session_id = cookies.session_id.value;
   });
-  test("Call authenticated/private endpoint", async () => {});
+  test("Call authenticated/private endpoint", async () => {
+    const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      method: "GET",
+      headers: {
+        Cookie: Cookie.stringifyCookie({
+          session_id,
+        }),
+      },
+    });
+
+    expect(res.status).toBe(200);
+  });
 });

@@ -130,7 +130,7 @@ export const User = {
     }
     return userFounded;
   },
-  async setFeaturesById(id, features) {
+  async setFeaturesById(id, ...features) {
     await database.query({
       text: `
         UPDATE 

@@ -73,6 +73,7 @@ export const Orchestrator = {
     username: undefined,
     email: undefined,
     password: undefined,
+    features: undefined,
 
     withUsername(username) {
       this.username = username;
@@ -86,17 +87,23 @@ export const Orchestrator = {
       this.password = password;
       return this;
     },
+    withFeatures(...features) {
+      this.features = features;
+      return this;
+    },
 
     async create() {
       const {
         username = Orchestrator.Mock.internet.username().replace(/[_.-]/g, ""),
         email = Orchestrator.Mock.internet.email(),
         password = Orchestrator.Mock.internet.password(),
+        features,
       } = this;
 
       this.username = undefined;
       this.email = undefined;
       this.password = undefined;
+      this.features = undefined;
 
       const user = await User.create({
         username,
@@ -104,21 +111,38 @@ export const Orchestrator = {
         password,
       });
 
+      if (features && Array.isArray(features) && features.length) {
+        await User.setFeaturesById(user.id, ...features);
+        user.features = [...user.features, ...features];
+      }
+
       return {
         ...user,
         plainPassword: password,
       };
     },
     async createActivated() {
+      const { features } = this;
+      this.features = undefined;
+
       const user = await this.create();
       const activation = await UserActivation.create(user.id);
       await UserActivation.activate(activation.id);
       const activatedUser = await User.findById(user.id);
 
+      if (features && Array.isArray(features) && features.length) {
+        await User.setFeaturesById(user.id, ...features);
+        activatedUser.features = [...activatedUser.features, ...features];
+      }
+
       return {
         ...activatedUser,
         plainPassword: user.plainPassword,
       };
+    },
+    async setFeatures(user, ...features) {
+      await User.setFeaturesById(user.id, ...features);
+      return { ...user, features };
     },
   },
   Session: {

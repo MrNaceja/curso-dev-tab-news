@@ -151,11 +151,13 @@ export const UserActivation = {
       activatedAt,
     });
     const activatedUser = await User.findById(activatedActivation.user_id);
-    await User.setFeaturesById(activatedUser.id, [
+    await User.setFeaturesById(
+      activatedUser.id,
       "create:session",
+      "read:session",
       "invalidate:session",
       "renew:session",
-    ]);
+    );
     return activatedActivation;
   },
 };

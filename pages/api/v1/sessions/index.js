@@ -5,10 +5,10 @@ import { Session } from "models/session";
 const controller = new Controller();
 
 export default controller
-  .POST(controller.withAuthorizedFeaturesCan("create:session"), createSession)
-  .PATCH(controller.withAuthorizedFeaturesCan("renew:session"), renewSession)
+  .POST(controller.withAuthorizedFeaturesOnly("create:session"), createSession)
+  .PATCH(controller.withAuthorizedFeaturesOnly("renew:session"), renewSession)
   .DELETE(
-    controller.withAuthorizedFeaturesCan("invalidate:session"),
+    controller.withAuthorizedFeaturesOnly("invalidate:session"),
     invalidateSession,
   )
   .handle.bind(controller);
