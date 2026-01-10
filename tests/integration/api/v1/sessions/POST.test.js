@@ -8,7 +8,7 @@ describe("POST on api/v1/sessions", () => {
   describe("With Anonymous user", () => {
     test("when passing correct password but incorrect email", async () => {
       const correctPassword = "correct_password";
-      await Orchestrator.User.withPassword(correctPassword).create();
+      await Orchestrator.User.withPassword(correctPassword).createActivated();
 
       const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
         method: "POST",
@@ -33,7 +33,7 @@ describe("POST on api/v1/sessions", () => {
     });
     test("when passing correct email but incorrect password", async () => {
       const correctEmail = "correct@email";
-      await Orchestrator.User.withEmail(correctEmail).create();
+      await Orchestrator.User.withEmail(correctEmail).createActivated();
 
       const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
         method: "POST",
@@ -57,7 +57,7 @@ describe("POST on api/v1/sessions", () => {
       );
     });
     test("when passing correct email and password", async () => {
-      const userTest = await Orchestrator.User.create();
+      const userTest = await Orchestrator.User.createActivated();
 
       const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
         method: "POST",

@@ -104,6 +104,18 @@ describe("Registration flow with success", () => {
 
     expect(activatedUser.features).toEqual(["create:session"]);
   });
-  test("Create a authenticated session (login)", async () => {});
+  test("Create a authenticated session (login)", async () => {
+    const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userTest.email,
+        password: userTest.password,
+      }),
+    });
+    expect(res.status).toBe(201);
+  });
   test("Call authenticated/private endpoint", async () => {});
 });

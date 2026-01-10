@@ -6,6 +6,7 @@ import { Session } from "models/session";
 import { User } from "models/user";
 import * as Cookie from "cookie";
 import { emailHttpUrl } from "infra/email";
+import { UserActivation } from "models/user-activation";
 
 function checkNextWebserverIsUp() {
   return retry(
@@ -107,6 +108,12 @@ export const Orchestrator = {
         ...user,
         plainPassword: password,
       };
+    },
+    async createActivated() {
+      const user = await this.create();
+      const activation = await UserActivation.create(user.id);
+      await UserActivation.activate(activation.id);
+      return user;
     },
   },
   Session: {

@@ -4,7 +4,7 @@ import { Session } from "models/session";
 const controller = new Controller();
 
 export default controller
-  .POST(createSession)
+  .POST(controller.withAuthorizatedFeaturesCan("create:session"), createSession)
   .PATCH(renewSession)
   .DELETE(invalidateSession)
   .handle.bind(controller);
