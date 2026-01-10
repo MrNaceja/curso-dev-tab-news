@@ -73,7 +73,7 @@ export class Controller {
     if (!handler) {
       handler = middleware;
     } else {
-      this.middlewares.set("GET", middleware);
+      this.with(middleware, "GET");
     }
     this.handlers.set("GET", handler);
     return this;
@@ -159,7 +159,7 @@ export class Controller {
     return this;
   }
 
-  withAuthorizedFeaturesCan(...features) {
+  withAuthorizedFeaturesOnly(...features) {
     return function (req, _, next) {
       Authorization.validateFeatures(req.context.user.features, features);
       next();
