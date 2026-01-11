@@ -5,7 +5,7 @@ import { UserActivation } from "models/user-activation";
 const controller = new Controller();
 
 export default controller
-  .POST(createUser)
+  .POST(controller.withAuthorizedFeaturesOnly("create:user"), createUser)
   .GET(
     controller.withAuthorizedFeaturesOnly("read:session"),
     showAuthenticatedUser,

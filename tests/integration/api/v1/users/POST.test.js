@@ -1,6 +1,7 @@
-import { ValidationError } from "infra/errors";
+import { ForbiddenError, ValidationError } from "infra/errors";
 import { Security } from "models/security";
 import { Orchestrator } from "tests/orchestrator";
+import * as Cookie from "cookie";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -117,6 +118,38 @@ describe("POST on /api/v1/users", () => {
 
       expect(res2.status).toBe(expectedDuplicatedEmailError.statusCode);
       expect(errorBody).toEqual(expectedDuplicatedEmailError.toJSON());
+    });
+  });
+
+  describe("with Authenticated user", () => {
+    test("passing unique and valid data", async () => {
+      const existentUserAuthenticatedSession =
+        await Orchestrator.Session.withRandomNewActivatedUser().create();
+
+      const userToCreate = {
+        username: Orchestrator.Mock.internet.username().replace(/[_.-]/g, ""),
+        email: Orchestrator.Mock.internet.email(),
+        password: Orchestrator.Mock.internet.password(),
+      };
+
+      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+        method: "POST",
+        headers: {
+          Cookie: Cookie.stringifyCookie({
+            session_id: existentUserAuthenticatedSession.id,
+          }),
+        },
+        body: JSON.stringify(userToCreate),
+      });
+
+      const forbiddenError = await res.json();
+      const expectedError = new ForbiddenError({
+        message: "Você não possui permissão(ões) para executar esta ação.",
+        action: 'Verifique se você possui a(s) feature(s) "create:user"',
+      });
+
+      expect(res.status).toBe(expectedError.statusCode);
+      expect(forbiddenError).toEqual(expectedError.toJSON());
     });
   });
 });
