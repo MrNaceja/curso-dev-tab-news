@@ -33,7 +33,7 @@ export const UserActivation = {
   async findById(id) {
     if (!id) {
       throw new NotFoundError({
-        message: "Ativação de usuário não encontrada para o id fornecido.",
+        message: "Ativação de usuário não encontrada para o token fornecido.",
         action: "Verifique os parâmetros fornecidos.",
       });
     }
@@ -54,7 +54,8 @@ export const UserActivation = {
     const [activationFounded] = findActivationQuery.rows;
     if (!activationFounded) {
       throw new NotFoundError({
-        message: "Nenhuma ativação de usuário encontrada para o id fornecido.",
+        message:
+          "Nenhuma ativação de usuário encontrada para o token fornecido.",
         action: "Verifique os parâmetros fornecidos.",
       });
     }
@@ -63,7 +64,7 @@ export const UserActivation = {
   async findValidById(id) {
     if (!id) {
       throw new NotFoundError({
-        message: "Ativação de usuário não encontrada para o id fornecido.",
+        message: "Ativação de usuário não encontrada para o token fornecido.",
         action: "Verifique os parâmetros fornecidos.",
       });
     }
@@ -89,7 +90,7 @@ export const UserActivation = {
     if (!activationFounded) {
       throw new NotFoundError({
         message:
-          "Nenhuma ativação de usuário ativa encontrada para o id fornecido.",
+          "Nenhuma ativação de usuário ativa encontrada para o token fornecido.",
         action: "Verifique os parâmetros fornecidos.",
       });
     }
