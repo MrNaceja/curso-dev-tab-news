@@ -126,8 +126,9 @@ export const Orchestrator = {
       this.features = undefined;
 
       const user = await this.create();
-      const activation = await UserActivation.create(user.id);
-      await UserActivation.activate(activation.id);
+      const activationToken =
+        await Orchestrator.UserActivation.withUser(user).generateToken();
+      await Orchestrator.UserActivation.activate(activationToken);
       const activatedUser = await User.findById(user.id);
 
       if (features && Array.isArray(features) && features.length) {
@@ -173,6 +174,27 @@ export const Orchestrator = {
         ...session,
         user,
       };
+    },
+  },
+  UserActivation: {
+    user: undefined,
+    withUser(user) {
+      this.user = user;
+      return this;
+    },
+    async activate(token) {
+      await UserActivation.activate(token);
+    },
+    async generateToken() {
+      let { user } = this;
+      this.user = undefined;
+
+      if (user instanceof Promise) {
+        user = await user;
+      }
+
+      const activation = await UserActivation.create(user.id);
+      return activation.id;
     },
   },
   Mock: faker,
