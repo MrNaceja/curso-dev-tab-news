@@ -122,13 +122,13 @@ describe("PATCH on /api/v1/users/activate/[token]", () => {
       expect(activatedUserActivation.activated_at).toBeInstanceOf(Date);
 
       const activatedUser = await User.findById(userTest.id);
-      expect(activatedUser.features).toEqual(
-        expect.arrayContaining([
-          "create:session",
-          "renew:session",
-          "invalidate:session",
-        ]),
-      );
+      expect(activatedUser.features).toEqual([
+        "create:session",
+        "read:session",
+        "update:user",
+        "invalidate:session",
+        "renew:session",
+      ]);
     });
   });
 

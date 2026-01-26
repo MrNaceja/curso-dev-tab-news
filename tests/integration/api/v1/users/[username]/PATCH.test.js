@@ -2,16 +2,23 @@ import { NotFoundError, ValidationError } from "infra/errors";
 import { Security } from "models/security";
 import { User } from "models/user";
 import { Orchestrator } from "tests/orchestrator";
+import * as Cookie from "cookie";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
 describe("PATCH on /api/v1/users/[username]", () => {
-  describe("with Anonymous user", () => {
+  describe("with Anonymous user", () => {});
+
+  describe("with Authenticated user", () => {
     test("when passing duplicated username", async () => {
       const userTestA =
-        await Orchestrator.User.withUsername("usernameA").create();
+        await Orchestrator.User.withUsername("usernameA").createActivated();
+
       const userTestB =
-        await Orchestrator.User.withUsername("usernameB").create();
+        await Orchestrator.User.withUsername("usernameB").createActivated();
+
+      const sessionUserA =
+        await Orchestrator.Session.withUser(userTestA).create();
 
       const res = await fetch(
         `${process.env.WEBSERVER_URL}/api/v1/users/${userTestA.username}`,
@@ -19,6 +26,9 @@ describe("PATCH on /api/v1/users/[username]", () => {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            Cookie: Cookie.stringifyCookie({
+              session_id: sessionUserA.id,
+            }),
           },
           body: JSON.stringify({
             username: userTestB.username,
@@ -37,9 +47,12 @@ describe("PATCH on /api/v1/users/[username]", () => {
     });
     test("when passing duplicated email", async () => {
       const userTestA =
-        await Orchestrator.User.withEmail("userA@email.com").create();
+        await Orchestrator.User.withEmail("userA@email.com").createActivated();
       const userTestB =
-        await Orchestrator.User.withEmail("userB@email.com").create();
+        await Orchestrator.User.withEmail("userB@email.com").createActivated();
+
+      const sessionUserA =
+        await Orchestrator.Session.withUser(userTestA).create();
 
       const res = await fetch(
         `${process.env.WEBSERVER_URL}/api/v1/users/${userTestA.username}`,
@@ -47,6 +60,9 @@ describe("PATCH on /api/v1/users/[username]", () => {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            Cookie: Cookie.stringifyCookie({
+              session_id: sessionUserA.id,
+            }),
           },
           body: JSON.stringify({
             email: userTestB.email,
@@ -64,10 +80,17 @@ describe("PATCH on /api/v1/users/[username]", () => {
       expect(errorBody).toEqual(expectedDuplicatedEmailError.toJSON());
     });
     test("when passing inexistent username", async () => {
+      const auhtenticatedUserSessionTest =
+        await Orchestrator.Session.withRandomNewActivatedUser().create();
       const res = await fetch(
         `${process.env.WEBSERVER_URL}/api/v1/users/UsuarioInexistente`,
         {
           method: "PATCH",
+          headers: {
+            Cookie: Cookie.stringifyCookie({
+              session_id: auhtenticatedUserSessionTest.id,
+            }),
+          },
         },
       );
 
@@ -82,18 +105,22 @@ describe("PATCH on /api/v1/users/[username]", () => {
       expect(errorBody).toEqual(expectedNotFoundError.toJSON());
     });
     test("when passing a new unique username", async () => {
-      const userTest = await Orchestrator.User.create();
+      const sessionUserTest =
+        await Orchestrator.Session.withRandomNewActivatedUser().create();
 
       const newUniqueUsername = Orchestrator.Mock.internet
         .username()
         .replace(/[._-]/g, "");
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${userTest.username}`,
+        `${process.env.WEBSERVER_URL}/api/v1/users/${sessionUserTest.user.username}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            Cookie: Cookie.stringifyCookie({
+              session_id: sessionUserTest.id,
+            }),
           },
           body: JSON.stringify({
             username: newUniqueUsername,
@@ -110,15 +137,19 @@ describe("PATCH on /api/v1/users/[username]", () => {
       }).not.toThrow(NotFoundError);
     });
     test("when passing a new unique email", async () => {
-      const userTest = await Orchestrator.User.create();
+      const sessionUserTest =
+        await Orchestrator.Session.withRandomNewActivatedUser().create();
       const newUniqueEmail = Orchestrator.Mock.internet.email();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${userTest.username}`,
+        `${process.env.WEBSERVER_URL}/api/v1/users/${sessionUserTest.user.username}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            Cookie: Cookie.stringifyCookie({
+              session_id: sessionUserTest.id,
+            }),
           },
           body: JSON.stringify({
             email: newUniqueEmail,
@@ -127,7 +158,9 @@ describe("PATCH on /api/v1/users/[username]", () => {
       );
       expect(res.status).toBe(204);
 
-      const updatedUser = await User.findByUsername(userTest.username);
+      const updatedUser = await User.findByUsername(
+        sessionUserTest.user.username,
+      );
 
       expect(updatedUser.email).toEqual(newUniqueEmail);
       expect(new Date(updatedUser.updated_at).getTime()).toBeGreaterThan(
@@ -136,7 +169,11 @@ describe("PATCH on /api/v1/users/[username]", () => {
     });
     test("when passing a new password", async () => {
       const userTest =
-        await Orchestrator.User.withPassword("initial_password").create();
+        await Orchestrator.User.withPassword(
+          "initial_password",
+        ).createActivated();
+      const sessionUserTest =
+        await Orchestrator.Session.withUser(userTest).create();
       const newPassword = Orchestrator.Mock.internet.password();
 
       const res = await fetch(
@@ -145,6 +182,9 @@ describe("PATCH on /api/v1/users/[username]", () => {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            Cookie: Cookie.stringifyCookie({
+              session_id: sessionUserTest.id,
+            }),
           },
           body: JSON.stringify({
             password: newPassword,

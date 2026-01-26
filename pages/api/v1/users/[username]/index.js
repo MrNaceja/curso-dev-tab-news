@@ -5,7 +5,10 @@ const controller = new Controller();
 
 export default controller
   .GET(findUserByUsername)
-  .PATCH(updateUserByUsername)
+  .PATCH(
+    controller.withAuthorizedFeaturesOnly("update:user"),
+    updateUserByUsername,
+  )
   .handle.bind(controller);
 
 async function findUserByUsername(req, res) {
