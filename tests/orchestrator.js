@@ -132,8 +132,9 @@ export const Orchestrator = {
       const activatedUser = await User.findById(user.id);
 
       if (features && Array.isArray(features) && features.length) {
-        await User.setFeaturesById(user.id, ...features);
-        activatedUser.features = [...activatedUser.features, ...features];
+        const userFeatures = [...activatedUser.features, ...features];
+        await User.setFeaturesById(user.id, ...userFeatures);
+        activatedUser.features = userFeatures;
       }
 
       return {
