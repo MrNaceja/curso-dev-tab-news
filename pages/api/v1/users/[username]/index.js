@@ -1,4 +1,5 @@
 import { Controller } from "infra/controller";
+import { Authorization } from "models/authorization";
 import { User } from "models/user";
 
 const controller = new Controller();
@@ -20,6 +21,10 @@ async function findUserByUsername(req, res) {
 async function updateUserByUsername(req, res) {
   const { username: usernameTarget } = req.query;
   const { username, email, password } = req.body;
+  const { user } = req.context;
+
+  const userTarget = await User.findByUsername(usernameTarget);
+  await Authorization.validate(user, "update:user", userTarget.id);
 
   await User.updateByUsername(usernameTarget, { username, password, email });
   return res.status(204).send();

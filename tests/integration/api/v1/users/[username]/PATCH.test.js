@@ -1,4 +1,4 @@
-import { NotFoundError, ValidationError } from "infra/errors";
+import { ForbiddenError, NotFoundError, ValidationError } from "infra/errors";
 import { Security } from "models/security";
 import { User } from "models/user";
 import { Orchestrator } from "tests/orchestrator";
@@ -7,7 +7,34 @@ import * as Cookie from "cookie";
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
 describe("PATCH on /api/v1/users/[username]", () => {
-  describe("with Anonymous user", () => {});
+  describe("with Anonymous user", () => {
+    test("when passing a new unique username", async () => {
+      const newUniqueUsername = Orchestrator.Mock.internet
+        .username()
+        .replace(/[._-]/g, "");
+
+      const res = await fetch(
+        `${process.env.WEBSERVER_URL}/api/v1/users/Anonymous`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: newUniqueUsername,
+          }),
+        },
+      );
+      const expectedError = new ForbiddenError({
+        message: "Você não possui permissão(ões) para executar esta ação.",
+        action: 'Verifique se você possui a(s) feature(s) "update:user"',
+      });
+
+      expect(res.status).toBe(expectedError.statusCode);
+      const errorBody = await res.json();
+      expect(errorBody).toEqual(expectedError.toJSON());
+    });
+  });
 
   describe("with Authenticated user", () => {
     test("when passing duplicated username", async () => {
@@ -209,6 +236,85 @@ describe("PATCH on /api/v1/users/[username]", () => {
       expect(new Date(updatedUser.updated_at).getTime()).toBeGreaterThan(
         new Date(updatedUser.created_at).getTime(),
       );
+    });
+    test("when an user try update another user", async () => {
+      const userTestA = await Orchestrator.User.createActivated();
+      const userTestB = await Orchestrator.User.createActivated();
+
+      const sessionUserA =
+        await Orchestrator.Session.withUser(userTestA).create();
+
+      const newUniqueUsername = Orchestrator.Mock.internet
+        .username()
+        .replace(/[._-]/g, "");
+
+      const res = await fetch(
+        `${process.env.WEBSERVER_URL}/api/v1/users/${userTestB.username}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: Cookie.stringifyCookie({
+              session_id: sessionUserA.id,
+            }),
+          },
+          body: JSON.stringify({
+            username: newUniqueUsername,
+          }),
+        },
+      );
+
+      const expectedError = new ForbiddenError({
+        message:
+          "Usuário não possui permissão(ões) para gerenciar este recurso.",
+        action: "Verifique as permissão(ões) concedidas.",
+      });
+
+      expect(res.status).toBe(expectedError.statusCode);
+      const errorBody = await res.json();
+      expect(errorBody).toEqual(expectedError.toJSON());
+    });
+  });
+
+  describe("with Privilegied user", () => {
+    test("when has 'update:user:super' trying update another user", async () => {
+      const userPrivilegiedTest =
+        await Orchestrator.User.withFeatures(
+          "update:user:super",
+        ).createActivated();
+      const otherUserTest = await Orchestrator.User.createActivated();
+
+      const sessionUserPrivilegied =
+        await Orchestrator.Session.withUser(userPrivilegiedTest).create();
+
+      const newUniqueUsername = Orchestrator.Mock.internet
+        .username()
+        .replace(/[._-]/g, "");
+
+      const res = await fetch(
+        `${process.env.WEBSERVER_URL}/api/v1/users/${otherUserTest.username}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: Cookie.stringifyCookie({
+              session_id: sessionUserPrivilegied.id,
+            }),
+          },
+          body: JSON.stringify({
+            username: newUniqueUsername,
+          }),
+        },
+      );
+
+      expect(res.status).toBe(204);
+
+      expect(async () => {
+        const updatedUser = await User.findByUsername(newUniqueUsername);
+        expect(new Date(updatedUser.updated_at).getTime()).toBeGreaterThan(
+          new Date(updatedUser.created_at).getTime(),
+        );
+      }).not.toThrow(NotFoundError);
     });
   });
 });
