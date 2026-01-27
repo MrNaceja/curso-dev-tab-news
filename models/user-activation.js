@@ -156,7 +156,7 @@ export const UserActivation = {
     const activatedAt = new Date();
     const activation = await this.findValidById(id);
     const userToActivate = await User.findById(activation.user_id);
-    Authorization.validateFeatures(userToActivate.features, ["activate:user"]);
+    await Authorization.validate(userToActivate, "activate:user");
 
     const activatedActivation = await UserActivation.updateBy(activation, {
       activatedAt,

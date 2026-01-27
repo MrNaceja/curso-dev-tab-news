@@ -48,7 +48,7 @@ export const Authentication = {
       password,
     });
     const session = await Session.create(user.id);
-    Authorization.validateFeatures(user.features, ["create:session"]);
+    await Authorization.validate(user, "create:session");
     return session;
   },
   async renewUserSession(sessionId) {

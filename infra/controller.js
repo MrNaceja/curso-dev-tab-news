@@ -160,8 +160,8 @@ export class Controller {
   }
 
   withAuthorizedFeaturesOnly(...features) {
-    return function (req, _, next) {
-      Authorization.validateFeatures(req.context.user.features, features);
+    return async function (req, _, next) {
+      await Authorization.validate(req.context.user, features);
       next();
     };
   }
