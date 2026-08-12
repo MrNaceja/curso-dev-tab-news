@@ -15,7 +15,12 @@ function checkNextWebserverIsUp() {
         method: "GET",
       });
 
-      if (!res.ok) throw new Error("Webserver is not ready, retrying...");
+      await res
+        .json()
+        .catch(
+          (cause) =>
+            new Error("Webserver is not ready, retrying...", { cause }),
+        );
     },
     {
       retries: 10,

@@ -2,6 +2,7 @@ import { ForbiddenError, ValidationError } from "infra/errors";
 import { Security } from "models/security";
 import { Orchestrator } from "tests/orchestrator";
 import * as Cookie from "cookie";
+import { User } from "models/user";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -20,24 +21,24 @@ describe("POST on /api/v1/users", () => {
         },
         body: JSON.stringify(userTest),
       });
-      const createdUser = await res.json();
+      const createdUserOutput = await res.json();
 
       expect(res.status).toBe(201);
-      expect(createdUser).toEqual(
+      expect(createdUserOutput).toEqual(
         expect.objectContaining({
           created_at: expect.stringContaining(
-            new Date(createdUser.created_at).toISOString(),
+            new Date(createdUserOutput.created_at).toISOString(),
           ),
           updated_at: expect.stringContaining(
-            new Date(createdUser.updated_at).toISOString(),
+            new Date(createdUserOutput.updated_at).toISOString(),
           ),
-          id: expect.stringContaining(createdUser.id),
+          id: expect.stringContaining(createdUserOutput.id),
           username: expect.stringContaining(userTest.username),
-          email: expect.stringContaining(userTest.email),
-          password: expect.stringContaining(createdUser.password),
           features: ["activate:user"],
         }),
       );
+
+      const createdUser = await User.findById(createdUserOutput.id);
 
       const isSamePassword = await Security.comparePassword(
         userTest.password,

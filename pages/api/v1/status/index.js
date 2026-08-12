@@ -1,5 +1,6 @@
 import { Controller } from "infra/controller";
 import database from "infra/database";
+import { Authorization } from "models/authorization";
 
 const controller = new Controller();
 
@@ -27,9 +28,15 @@ const catchDatabaseDependencyMetadata = async () => {
   };
 };
 
-export default controller.GET(displaySystemStatus).handle.bind(controller);
+export default controller
+  .GET(
+    controller.withAuthorizedFeaturesOnly("read:system-status"),
+    displaySystemStatus,
+  )
+  .handle.bind(controller);
 
 async function displaySystemStatus(req, res) {
+  const { user: userAuthenticated } = req.context;
   const { version, maxConnections, openedConnections } =
     await catchDatabaseDependencyMetadata();
 
@@ -44,5 +51,10 @@ async function displaySystemStatus(req, res) {
     },
   };
 
-  res.status(200).json(status);
+  const statusSecurePublicOutput = Authorization.withSecureOutput(
+    "read:system-status",
+    userAuthenticated,
+  )(status);
+
+  res.status(200).json(statusSecurePublicOutput);
 }

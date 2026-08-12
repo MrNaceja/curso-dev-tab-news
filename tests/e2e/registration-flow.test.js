@@ -34,8 +34,6 @@ describe("Registration flow with success", () => {
         ),
         id: expect.stringContaining(createdUser.id),
         username: expect.stringContaining(userTest.username),
-        email: expect.stringContaining(userTest.email),
-        password: expect.stringContaining(createdUser.password),
         features: ["activate:user"],
       }),
     );
@@ -107,6 +105,7 @@ describe("Registration flow with success", () => {
     expect(activatedUser.features).toEqual([
       "create:session",
       "read:session",
+      "read:user:self",
       "update:user",
       "invalidate:session",
       "renew:session",

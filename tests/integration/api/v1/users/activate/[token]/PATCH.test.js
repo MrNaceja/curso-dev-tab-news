@@ -125,6 +125,7 @@ describe("PATCH on /api/v1/users/activate/[token]", () => {
       expect(activatedUser.features).toEqual([
         "create:session",
         "read:session",
+        "read:user:self",
         "update:user",
         "invalidate:session",
         "renew:session",

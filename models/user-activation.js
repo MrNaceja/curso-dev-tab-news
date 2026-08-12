@@ -165,6 +165,7 @@ export const UserActivation = {
       userToActivate.id,
       "create:session",
       "read:session",
+      "read:user:self",
       "update:user",
       "invalidate:session",
       "renew:session",

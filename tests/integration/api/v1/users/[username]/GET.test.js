@@ -16,6 +16,7 @@ describe("GET on /api/v1/users/[username]", () => {
         },
       );
       const userFounded = await res.json();
+      console.log({ userFounded });
 
       expect(res.status).toBe(200);
       expect(userFounded).toEqual(
@@ -28,8 +29,6 @@ describe("GET on /api/v1/users/[username]", () => {
           ),
           id: expect.stringContaining(userFounded.id),
           username: expect.stringContaining(userTest.username),
-          email: expect.stringContaining(userTest.email),
-          password: expect.stringContaining(userTest.password),
         }),
       );
     });
@@ -59,8 +58,6 @@ describe("GET on /api/v1/users/[username]", () => {
           ),
           id: expect.stringContaining(userFounded.id),
           username: expect.stringContaining(userTest.username),
-          email: expect.stringContaining(userTest.email),
-          password: expect.stringContaining(userTest.password),
         }),
       );
     });

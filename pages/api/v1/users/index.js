@@ -1,4 +1,5 @@
 import { Controller } from "infra/controller";
+import { Authorization } from "models/authorization";
 import { User } from "models/user";
 import { UserActivation } from "models/user-activation";
 
@@ -13,6 +14,7 @@ export default controller
   .handle.bind(controller);
 
 async function createUser(req, res) {
+  const { user: authenticatedUser } = req.context;
   const { username, email, password } = req.body;
   const createdUser = await User.create({
     username,
@@ -20,10 +22,18 @@ async function createUser(req, res) {
     password,
   });
   await UserActivation.requestUserActivation(createdUser);
-  return res.status(201).json(createdUser);
+  const userSecurePublicOutput = Authorization.withSecureOutput(
+    "read:user",
+    authenticatedUser,
+  )(createdUser);
+  return res.status(201).json(userSecurePublicOutput);
 }
 
 async function showAuthenticatedUser(req, res) {
-  const { user } = req.context;
-  return res.status(200).send(user);
+  const { user: authenticatedUser } = req.context;
+  const userSecurePublicOutput = Authorization.withSecureOutput(
+    "read:user",
+    authenticatedUser,
+  )(authenticatedUser);
+  return res.status(200).send(userSecurePublicOutput);
 }

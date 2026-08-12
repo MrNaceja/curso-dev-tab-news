@@ -75,16 +75,9 @@ describe("POST on api/v1/sessions", () => {
       expect(createdSession).toEqual(
         expect.objectContaining({
           id: createdSession.id,
-          user_id: userTest.id,
-          created_at: expect.stringContaining(
-            new Date(createdSession.created_at).toISOString(),
-          ),
-          updated_at: expect.stringContaining(
-            new Date(createdSession.updated_at).toISOString(),
-          ),
-          expires_at: expect.stringContaining(
-            new Date(createdSession.expires_at).toISOString(),
-          ),
+          created_at: new Date(createdSession.created_at).toISOString(),
+          updated_at: new Date(createdSession.updated_at).toISOString(),
+          expires_at: new Date(createdSession.expires_at).toISOString(),
         }),
       );
 

@@ -14,8 +14,13 @@ export default controller
 
 async function findUserByUsername(req, res) {
   const { username } = req.query;
+  const { user: userAuthenticated } = req.context;
   const userFounded = await User.findByUsername(username);
-  return res.status(200).json(userFounded);
+  const userSecurePublicOutput = Authorization.withSecureOutput(
+    "read:user",
+    userAuthenticated,
+  )(userFounded);
+  return res.status(200).json(userSecurePublicOutput);
 }
 
 async function updateUserByUsername(req, res) {

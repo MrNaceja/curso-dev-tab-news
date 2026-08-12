@@ -37,7 +37,6 @@ describe("GET on /api/v1/users", () => {
       expect.objectContaining({
         id: authenticatedUserSessionTest.user.id,
         username: authenticatedUserSessionTest.user.username,
-        email: authenticatedUserSessionTest.user.email,
       }),
     );
   });

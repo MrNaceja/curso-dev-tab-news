@@ -1,5 +1,6 @@
 import { Controller } from "infra/controller";
 import { Authentication } from "models/authentication";
+import { Authorization } from "models/authorization";
 import { Session } from "models/session";
 
 const controller = new Controller();
@@ -26,7 +27,14 @@ async function createSession(req, res) {
     secure: process.env.NODE_ENV === "production",
   });
 
-  return res.status(201).json(session);
+  const { user: userAuthenticated } = req.context;
+
+  const sessionSecurePublicOutput = Authorization.withSecureOutput(
+    "read:session",
+    userAuthenticated,
+  )(session);
+
+  return res.status(201).json(sessionSecurePublicOutput);
 }
 
 async function renewSession(req, res) {
