@@ -5,8 +5,10 @@ import { Migrator } from "models/migrator";
 import { Session } from "models/session";
 import { User } from "models/user";
 import * as Cookie from "cookie";
-import { emailHttpUrl } from "infra/email";
+import { getEmailHttpUrl } from "infra/email";
 import { UserActivation } from "models/user-activation";
+
+const EMAIL_HTTP_URL = getEmailHttpUrl();
 
 function checkNextWebserverIsUp() {
   return retry(
@@ -37,7 +39,7 @@ function checkNextWebserverIsUp() {
 function checkEmailServersIsUp() {
   return retry(
     async () => {
-      const res = await fetch(emailHttpUrl);
+      const res = await fetch(EMAIL_HTTP_URL);
 
       if (!res.ok) throw new Error("Email servers is not ready, retrying...");
     },
@@ -206,14 +208,14 @@ export const Orchestrator = {
   Mock: faker,
   Email: {
     async readLatestEmail() {
-      const fetchEmailsRes = await fetch(`${emailHttpUrl}/messages`);
+      const fetchEmailsRes = await fetch(`${EMAIL_HTTP_URL}/messages`);
       const emails = await fetchEmailsRes.json();
       const latestEmail = emails.pop();
 
       if (!latestEmail) return;
 
       const fetchEmailBodyRes = await fetch(
-        `${emailHttpUrl}/messages/${latestEmail.id}.plain`,
+        `${EMAIL_HTTP_URL}/messages/${latestEmail.id}.plain`,
       );
       const latestEmailBody = await fetchEmailBodyRes.text();
 
@@ -225,7 +227,7 @@ export const Orchestrator = {
       };
     },
     clearInbox() {
-      return fetch(`${emailHttpUrl}/messages`, { method: "DELETE" });
+      return fetch(`${EMAIL_HTTP_URL}/messages`, { method: "DELETE" });
     },
   },
   extractCookiesFromResponse(res) {

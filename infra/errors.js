@@ -1,11 +1,12 @@
 class BaseError extends Error {
-  constructor({ cause, message, action, name, statusCode }) {
+  constructor({ cause, message, action, name, statusCode, ctx }) {
     super(message, {
       cause,
     });
     this.name = name;
     this.action = action;
     this.statusCode = statusCode;
+    this.ctx = ctx;
   }
 
   toJSON() {
@@ -14,6 +15,7 @@ class BaseError extends Error {
       name: this.name,
       action: this.action,
       status_code: this.statusCode,
+      context: this.ctx,
     };
   }
 }
