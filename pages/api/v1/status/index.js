@@ -28,12 +28,7 @@ const catchDatabaseDependencyMetadata = async () => {
   };
 };
 
-export default controller
-  .GET(
-    controller.withAuthorizedFeaturesOnly("read:system-status"),
-    displaySystemStatus,
-  )
-  .handle.bind(controller);
+export default controller.GET(displaySystemStatus).handle.bind(controller);
 
 async function displaySystemStatus(req, res) {
   const { user: userAuthenticated } = req.context;

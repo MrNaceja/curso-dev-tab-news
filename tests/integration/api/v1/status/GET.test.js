@@ -1,4 +1,3 @@
-import { ForbiddenError } from "infra/errors";
 import { Orchestrator } from "tests/orchestrator";
 import * as Cookie from "cookie";
 
@@ -9,14 +8,24 @@ describe("GET on /api/v1/status", () => {
     const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/status`, {
       method: "GET",
     });
-    const forbiddenError = await res.json();
-    const expectedError = new ForbiddenError({
-      message: "Você não possui permissão(ões) para executar esta ação.",
-      action: 'Verifique se você possui a(s) feature(s) "read:system-status"',
-    });
+    expect(res.status).toBe(200);
 
-    expect(res.status).toBe(403);
-    expect(forbiddenError).toEqual(expectedError.toJSON());
+    const status = await res.json();
+
+    expect(status.dependencies.database).not.toHaveProperty("postgres_version");
+    expect(status).toEqual(
+      expect.objectContaining({
+        updated_at: expect.stringContaining(
+          new Date(status.updated_at).toISOString(),
+        ),
+        dependencies: expect.objectContaining({
+          database: expect.objectContaining({
+            max_connections: expect.any(Number),
+            opened_connections: 1,
+          }),
+        }),
+      }),
+    );
   });
   describe("with Authenticated User", () => {
     test("with minimum feature to display status", async () => {
