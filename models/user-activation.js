@@ -99,7 +99,6 @@ export const UserActivation = {
   async requestUserActivation({ email, username, id: userId }) {
     const { id: activationToken } = await this.create(userId);
 
-    console.info("before:send");
     await Email.from("contato@naceja.com.br")
       .to(email)
       .send(

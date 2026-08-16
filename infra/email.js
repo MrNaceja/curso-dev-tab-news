@@ -36,17 +36,14 @@ export const Email = {
     delete this._from;
     delete this._to;
 
-    console.info("before-call:Send");
-
     try {
-      return emailSmtpTransporter.sendMail({
+      return await emailSmtpTransporter.sendMail({
         from,
         to,
         subject,
         text: body,
       });
     } catch (e) {
-      console.error("catch:error");
       throw new ServiceUnavailableError({
         cause: e,
         ctx: {
