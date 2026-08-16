@@ -46,7 +46,6 @@ export const Email = {
     } catch (e) {
       throw new ServiceUnavailableError({
         cause: e,
-        message: "Serviço de email indisponível.",
         ctx: {
           subject,
           body,

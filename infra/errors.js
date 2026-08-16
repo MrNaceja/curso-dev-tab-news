@@ -84,7 +84,7 @@ export class ForbiddenError extends BaseError {
 }
 
 export class ServiceUnavailableError extends BaseError {
-  constructor({ message, cause }) {
+  constructor({ message, cause, ctx }) {
     super({
       message:
         "Serviço indisponível no momento." + (message ? `\n ${message}` : ""),
@@ -92,6 +92,7 @@ export class ServiceUnavailableError extends BaseError {
       action: "Verifique a disponíbilidade do serviço.",
       statusCode: 503,
       cause,
+      ctx,
     });
   }
 }
