@@ -36,6 +36,8 @@ export const Email = {
     delete this._from;
     delete this._to;
 
+    console.info("before-call:Send");
+
     try {
       return emailSmtpTransporter.sendMail({
         from,
@@ -44,6 +46,7 @@ export const Email = {
         text: body,
       });
     } catch (e) {
+      console.error("catch:error");
       throw new ServiceUnavailableError({
         cause: e,
         ctx: {
