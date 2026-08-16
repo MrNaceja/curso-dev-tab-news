@@ -22,6 +22,7 @@
     "migrations": "node-pg-migrate --migrations-dir infra/migrations --envPath .env.development",
     "migrations:create": "npm run migrations create",
     "migrations:up": "npm run migrations up",
+    "migrations:up:dry": "npm run migrations -- --dry-run up",
     "scripts:check-postgres-is-ready": "node infra/scripts/check-postgres-is-ready.js",
     "scripts:run-dev": "node infra/scripts/run-dev.js",
     "scripts:sleep": "node infra/scripts/sleep.js",
