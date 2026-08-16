@@ -209,6 +209,7 @@ export class Controller {
       return await handler.call(this, req, res);
     } catch (e) {
       let error = e;
+      console.error(error);
 
       if (
         !(error instanceof ValidationError) &&
@@ -220,7 +221,6 @@ export class Controller {
         error = new InternalServerError({
           cause: error,
         });
-        console.error(error);
       }
 
       if (error instanceof UnauthorizedError) {
