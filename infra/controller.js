@@ -5,6 +5,7 @@ import {
   InternalServerError,
   MethodNotAllowedError,
   NotFoundError,
+  ServiceUnavailableError,
   UnauthorizedError,
   ValidationError,
 } from "infra/errors";
@@ -213,7 +214,8 @@ export class Controller {
         !(error instanceof ValidationError) &&
         !(error instanceof NotFoundError) &&
         !(error instanceof UnauthorizedError) &&
-        !(error instanceof ForbiddenError)
+        !(error instanceof ForbiddenError) &&
+        !(error instanceof ServiceUnavailableError)
       ) {
         error = new InternalServerError({
           cause: error,
