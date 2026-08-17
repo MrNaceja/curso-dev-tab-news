@@ -1,12 +1,13 @@
 import { ForbiddenError } from "infra/errors";
 import { Orchestrator } from "tests/orchestrator";
 import * as Cookie from "cookie";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
 describe("GET on /api/v1/migrations", () => {
   test("with Anonymous User", async () => {
-    const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/migrations`, {
+    const res = await fetch(`${getWebserverOrigin()}/api/v1/migrations`, {
       method: "GET",
     });
     const forbiddenError = await res.json();
@@ -22,7 +23,7 @@ describe("GET on /api/v1/migrations", () => {
     const authenticatedUserSessionTest =
       await Orchestrator.Session.withRandomNewActivatedUser().create();
 
-    const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/migrations`, {
+    const res = await fetch(`${getWebserverOrigin()}/api/v1/migrations`, {
       method: "GET",
       headers: {
         Cookie: Cookie.stringifyCookie({
@@ -46,7 +47,7 @@ describe("GET on /api/v1/migrations", () => {
     const authenticatedUserSessionTest =
       await Orchestrator.Session.withUser(userWithFeature).create();
 
-    const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/migrations`, {
+    const res = await fetch(`${getWebserverOrigin()}/api/v1/migrations`, {
       method: "GET",
       headers: {
         Cookie: Cookie.stringifyCookie({

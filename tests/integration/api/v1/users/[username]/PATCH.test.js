@@ -3,6 +3,7 @@ import { Security } from "models/security";
 import { User } from "models/user";
 import { Orchestrator } from "tests/orchestrator";
 import * as Cookie from "cookie";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -14,7 +15,7 @@ describe("PATCH on /api/v1/users/[username]", () => {
         .replace(/[._-]/g, "");
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/Anonymous`,
+        `${getWebserverOrigin()}/api/v1/users/Anonymous`,
         {
           method: "PATCH",
           headers: {
@@ -48,7 +49,7 @@ describe("PATCH on /api/v1/users/[username]", () => {
         await Orchestrator.Session.withUser(userTestA).create();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${userTestA.username}`,
+        `${getWebserverOrigin()}/api/v1/users/${userTestA.username}`,
         {
           method: "PATCH",
           headers: {
@@ -82,7 +83,7 @@ describe("PATCH on /api/v1/users/[username]", () => {
         await Orchestrator.Session.withUser(userTestA).create();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${userTestA.username}`,
+        `${getWebserverOrigin()}/api/v1/users/${userTestA.username}`,
         {
           method: "PATCH",
           headers: {
@@ -110,7 +111,7 @@ describe("PATCH on /api/v1/users/[username]", () => {
       const auhtenticatedUserSessionTest =
         await Orchestrator.Session.withRandomNewActivatedUser().create();
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/UsuarioInexistente`,
+        `${getWebserverOrigin()}/api/v1/users/UsuarioInexistente`,
         {
           method: "PATCH",
           headers: {
@@ -140,7 +141,7 @@ describe("PATCH on /api/v1/users/[username]", () => {
         .replace(/[._-]/g, "");
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${sessionUserTest.user.username}`,
+        `${getWebserverOrigin()}/api/v1/users/${sessionUserTest.user.username}`,
         {
           method: "PATCH",
           headers: {
@@ -169,7 +170,7 @@ describe("PATCH on /api/v1/users/[username]", () => {
       const newUniqueEmail = Orchestrator.Mock.internet.email();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${sessionUserTest.user.username}`,
+        `${getWebserverOrigin()}/api/v1/users/${sessionUserTest.user.username}`,
         {
           method: "PATCH",
           headers: {
@@ -204,7 +205,7 @@ describe("PATCH on /api/v1/users/[username]", () => {
       const newPassword = Orchestrator.Mock.internet.password();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${userTest.username}`,
+        `${getWebserverOrigin()}/api/v1/users/${userTest.username}`,
         {
           method: "PATCH",
           headers: {
@@ -249,7 +250,7 @@ describe("PATCH on /api/v1/users/[username]", () => {
         .replace(/[._-]/g, "");
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${userTestB.username}`,
+        `${getWebserverOrigin()}/api/v1/users/${userTestB.username}`,
         {
           method: "PATCH",
           headers: {
@@ -292,7 +293,7 @@ describe("PATCH on /api/v1/users/[username]", () => {
         .replace(/[._-]/g, "");
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${otherUserTest.username}`,
+        `${getWebserverOrigin()}/api/v1/users/${otherUserTest.username}`,
         {
           method: "PATCH",
           headers: {

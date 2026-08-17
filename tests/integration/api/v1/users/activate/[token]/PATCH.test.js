@@ -3,6 +3,7 @@ import { Orchestrator } from "tests/orchestrator";
 import { UserActivation } from "models/user-activation";
 import { User } from "models/user";
 import * as Cookie from "cookie";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -12,7 +13,7 @@ describe("PATCH on /api/v1/users/activate/[token]", () => {
       const inexistentToken = "a00c2980-4011-4c4c-b781-71b2641b3edd";
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/activate/${inexistentToken}`,
+        `${getWebserverOrigin()}/api/v1/users/activate/${inexistentToken}`,
         {
           method: "PATCH",
         },
@@ -37,7 +38,7 @@ describe("PATCH on /api/v1/users/activate/[token]", () => {
       }, past15MinutesInMs);
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/activate/${expiredToken}`,
+        `${getWebserverOrigin()}/api/v1/users/activate/${expiredToken}`,
         {
           method: "PATCH",
         },
@@ -59,7 +60,7 @@ describe("PATCH on /api/v1/users/activate/[token]", () => {
         await Orchestrator.UserActivation.withUser(userTest).generateToken();
 
       const firstActivationRes = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/activate/${activationToken}`,
+        `${getWebserverOrigin()}/api/v1/users/activate/${activationToken}`,
         {
           method: "PATCH",
         },
@@ -70,7 +71,7 @@ describe("PATCH on /api/v1/users/activate/[token]", () => {
       const alreadyActivatedToken = activationToken;
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/activate/${alreadyActivatedToken}`,
+        `${getWebserverOrigin()}/api/v1/users/activate/${alreadyActivatedToken}`,
         {
           method: "PATCH",
         },
@@ -92,7 +93,7 @@ describe("PATCH on /api/v1/users/activate/[token]", () => {
         await Orchestrator.UserActivation.withUser(userTest).generateToken();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/activate/${activationToken}`,
+        `${getWebserverOrigin()}/api/v1/users/activate/${activationToken}`,
         {
           method: "PATCH",
         },
@@ -143,7 +144,7 @@ describe("PATCH on /api/v1/users/activate/[token]", () => {
         await Orchestrator.UserActivation.withUser(userB).generateToken();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/activate/${activationTokenUserB}`,
+        `${getWebserverOrigin()}/api/v1/users/activate/${activationTokenUserB}`,
         {
           method: "PATCH",
           headers: {

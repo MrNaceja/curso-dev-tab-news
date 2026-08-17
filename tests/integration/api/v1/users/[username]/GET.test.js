@@ -1,5 +1,6 @@
 import { NotFoundError } from "infra/errors";
 import { Orchestrator } from "tests/orchestrator";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -10,7 +11,7 @@ describe("GET on /api/v1/users/[username]", () => {
         await Orchestrator.User.withUsername("usernameExactCase").create();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${userTest.username}`,
+        `${getWebserverOrigin()}/api/v1/users/${userTest.username}`,
         {
           method: "GET",
         },
@@ -38,7 +39,7 @@ describe("GET on /api/v1/users/[username]", () => {
       ).create();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${userTest.username.toLowerCase()}`,
+        `${getWebserverOrigin()}/api/v1/users/${userTest.username.toLowerCase()}`,
         {
           method: "GET",
         },
@@ -63,7 +64,7 @@ describe("GET on /api/v1/users/[username]", () => {
     });
     test("with inexistent username", async () => {
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/UsuarioInexistente`,
+        `${getWebserverOrigin()}/api/v1/users/UsuarioInexistente`,
         {
           method: "GET",
         },

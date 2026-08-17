@@ -5,7 +5,6 @@ import {
   InternalServerError,
   MethodNotAllowedError,
   NotFoundError,
-  ServiceUnavailableError,
   UnauthorizedError,
   ValidationError,
 } from "infra/errors";
@@ -215,8 +214,7 @@ export class Controller {
         !(error instanceof ValidationError) &&
         !(error instanceof NotFoundError) &&
         !(error instanceof UnauthorizedError) &&
-        !(error instanceof ForbiddenError) &&
-        !(error instanceof ServiceUnavailableError)
+        !(error instanceof ForbiddenError)
       ) {
         error = new InternalServerError({
           cause: error,
@@ -234,4 +232,11 @@ export class Controller {
       return res.status(error.statusCode).json(error);
     }
   }
+}
+
+export function getWebserverOrigin() {
+  if (process.env.VERCEL_ENV === "preview") {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return process.env.WEBSERVER_URL;
 }

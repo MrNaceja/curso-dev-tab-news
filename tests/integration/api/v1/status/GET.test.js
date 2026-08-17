@@ -1,11 +1,12 @@
 import { Orchestrator } from "tests/orchestrator";
 import * as Cookie from "cookie";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
 describe("GET on /api/v1/status", () => {
   test("with Anonymous user", async () => {
-    const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/status`, {
+    const res = await fetch(`${getWebserverOrigin()}/api/v1/status`, {
       method: "GET",
     });
     expect(res.status).toBe(200);
@@ -33,7 +34,7 @@ describe("GET on /api/v1/status", () => {
         Orchestrator.User.withFeatures("read:system-status").createActivated();
       const authenticatedUserSessionTest =
         await Orchestrator.Session.withUser(user).create();
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/status`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/status`, {
         method: "GET",
         headers: {
           Cookie: Cookie.stringifyCookie({
@@ -69,7 +70,7 @@ describe("GET on /api/v1/status", () => {
       ).createActivated();
       const authenticatedUserSessionTest =
         await Orchestrator.Session.withUser(user).create();
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/status`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/status`, {
         method: "GET",
         headers: {
           Cookie: Cookie.stringifyCookie({

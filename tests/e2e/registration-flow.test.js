@@ -2,6 +2,7 @@ import { User } from "models/user";
 import { UserActivation } from "models/user-activation";
 import { Orchestrator } from "tests/orchestrator";
 import * as Cookie from "cookie";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -13,7 +14,7 @@ describe("Registration flow with success", () => {
   };
   let session_id;
   test("Create user account", async () => {
-    const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+    const res = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -88,7 +89,7 @@ describe("Registration flow with success", () => {
         activationEmail.body,
       );
     const res = await fetch(
-      `${process.env.WEBSERVER_URL}/api/v1/users/activate/${activationToken}`,
+      `${getWebserverOrigin()}/api/v1/users/activate/${activationToken}`,
       {
         method: "PATCH",
       },
@@ -112,7 +113,7 @@ describe("Registration flow with success", () => {
     ]);
   });
   test("Create a authenticated session (login)", async () => {
-    const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
+    const res = await fetch(`${getWebserverOrigin()}/api/v1/sessions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -127,7 +128,7 @@ describe("Registration flow with success", () => {
     session_id = cookies.session_id.value;
   });
   test("Call authenticated/private endpoint", async () => {
-    const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+    const res = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
       method: "GET",
       headers: {
         Cookie: Cookie.stringifyCookie({

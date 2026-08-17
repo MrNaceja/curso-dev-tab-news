@@ -7,13 +7,14 @@ import { User } from "models/user";
 import * as Cookie from "cookie";
 import { getEmailHttpUrl } from "infra/email";
 import { UserActivation } from "models/user-activation";
+import { getWebserverOrigin } from "infra/controller";
 
 const EMAIL_HTTP_URL = getEmailHttpUrl();
 
 function checkNextWebserverIsUp() {
   return retry(
     async () => {
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/status`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/status`, {
         method: "GET",
       });
 

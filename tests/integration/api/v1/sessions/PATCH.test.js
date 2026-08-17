@@ -2,6 +2,7 @@ import { Orchestrator } from "tests/orchestrator";
 import * as Cookie from "cookie";
 import { UnauthorizedError } from "infra/errors";
 import { Session } from "models/session";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -10,7 +11,7 @@ describe("PATCH on /api/v1/sessions", () => {
     test("with nonexistent session cookie", async () => {
       const nonExistentSessionId = "f0cc8bb5-a5c9-42e6-862c-97d2b0228e03";
 
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/sessions`, {
         method: "PATCH",
         headers: {
           Cookie: Cookie.stringifyCookie({
@@ -37,7 +38,7 @@ describe("PATCH on /api/v1/sessions", () => {
         past30DaysInMs,
       );
 
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/sessions`, {
         method: "PATCH",
         headers: {
           Cookie: Cookie.stringifyCookie({
@@ -60,7 +61,7 @@ describe("PATCH on /api/v1/sessions", () => {
       const authenticatedUserSessionTest =
         await Orchestrator.Session.withRandomNewActivatedUser().create();
 
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/sessions`, {
         method: "PATCH",
         headers: {
           Cookie: Cookie.stringifyCookie({

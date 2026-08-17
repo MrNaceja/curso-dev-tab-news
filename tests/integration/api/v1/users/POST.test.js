@@ -3,6 +3,7 @@ import { Security } from "models/security";
 import { Orchestrator } from "tests/orchestrator";
 import * as Cookie from "cookie";
 import { User } from "models/user";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -14,7 +15,7 @@ describe("POST on /api/v1/users", () => {
         email: "naceja@email.com",
         password: "naceja123",
       };
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,7 +54,7 @@ describe("POST on /api/v1/users", () => {
       expect(isNotSamePassword).toBeFalsy();
     });
     test("when passing duplicated username", async () => {
-      const res1 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res1 = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,7 +67,7 @@ describe("POST on /api/v1/users", () => {
       });
       expect(res1.status).toBe(201);
 
-      const res2 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res2 = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,7 +88,7 @@ describe("POST on /api/v1/users", () => {
       expect(errorBody).toEqual(expectedDuplicatedUsernameError.toJSON());
     });
     test("when passing duplicated email", async () => {
-      const res1 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res1 = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +101,7 @@ describe("POST on /api/v1/users", () => {
       });
       expect(res1.status).toBe(201);
 
-      const res2 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res2 = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -133,7 +134,7 @@ describe("POST on /api/v1/users", () => {
         password: Orchestrator.Mock.internet.password(),
       };
 
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           Cookie: Cookie.stringifyCookie({

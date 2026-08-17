@@ -1,3 +1,4 @@
+import { getWebserverOrigin } from "infra/controller";
 import database from "infra/database";
 import { Email } from "infra/email";
 import { NotFoundError } from "infra/errors";
@@ -9,7 +10,7 @@ const expiresAt15MinutesInMs = 60 * 15 * 1000;
 export const UserActivation = {
   EXPIRES_AT_IN_MS: expiresAt15MinutesInMs,
   generateActivationLink(activationToken) {
-    return `${process.env.WEBSERVER_URL}/signup/activate/${activationToken}`;
+    return `${getWebserverOrigin()}/signup/activate/${activationToken}`;
   },
   async create(userId) {
     const createdAt = new Date();
