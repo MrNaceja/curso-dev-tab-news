@@ -238,5 +238,8 @@ export function getWebserverOrigin() {
   if (process.env.VERCEL_ENV === "preview") {
     return `https://${process.env.VERCEL_URL}`;
   }
+  if (process.env.VERCEL_ENV === "production") {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
   return process.env.WEBSERVER_URL;
 }
