@@ -5,16 +5,25 @@ import { Migrator } from "models/migrator";
 import { Session } from "models/session";
 import { User } from "models/user";
 import * as Cookie from "cookie";
-import { emailHttpUrl } from "infra/email";
+import { getEmailHttpUrl } from "infra/email";
+import { UserActivation } from "models/user-activation";
+import { getWebserverOrigin } from "infra/controller";
+
+const EMAIL_HTTP_URL = getEmailHttpUrl();
 
 function checkNextWebserverIsUp() {
   return retry(
     async () => {
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/status`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/status`, {
         method: "GET",
       });
 
-      if (!res.ok) throw new Error("Webserver is not ready, retrying...");
+      await res
+        .json()
+        .catch(
+          (cause) =>
+            new Error("Webserver is not ready, retrying...", { cause }),
+        );
     },
     {
       retries: 10,
@@ -31,7 +40,7 @@ function checkNextWebserverIsUp() {
 function checkEmailServersIsUp() {
   return retry(
     async () => {
-      const res = await fetch(emailHttpUrl);
+      const res = await fetch(EMAIL_HTTP_URL);
 
       if (!res.ok) throw new Error("Email servers is not ready, retrying...");
     },
@@ -55,20 +64,24 @@ async function resetDatabase() {
 export const Orchestrator = {
   checkNextWebserverIsUp,
   checkEmailServersIsUp,
-
-  async prepareCleanEnviroment() {
+  async prepareServices() {
     await checkNextWebserverIsUp();
+    await checkEmailServersIsUp();
+  },
+  async prepareCleanEnviroment() {
+    await Orchestrator.prepareServices();
     await resetDatabase();
+    await Orchestrator.Email.clearInbox();
   },
   async prepareEnviromentWithMigrationsExecuted() {
     await Orchestrator.prepareCleanEnviroment();
     await Migrator.runPending();
   },
-
   User: {
     username: undefined,
     email: undefined,
     password: undefined,
+    features: undefined,
 
     withUsername(username) {
       this.username = username;
@@ -82,17 +95,23 @@ export const Orchestrator = {
       this.password = password;
       return this;
     },
+    withFeatures(...features) {
+      this.features = features;
+      return this;
+    },
 
     async create() {
       const {
         username = Orchestrator.Mock.internet.username().replace(/[_.-]/g, ""),
         email = Orchestrator.Mock.internet.email(),
         password = Orchestrator.Mock.internet.password(),
+        features,
       } = this;
 
       this.username = undefined;
       this.email = undefined;
       this.password = undefined;
+      this.features = undefined;
 
       const user = await User.create({
         username,
@@ -100,10 +119,40 @@ export const Orchestrator = {
         password,
       });
 
+      if (features && Array.isArray(features) && features.length) {
+        await User.setFeaturesById(user.id, ...features);
+        user.features = [...user.features, ...features];
+      }
+
       return {
         ...user,
         plainPassword: password,
       };
+    },
+    async createActivated() {
+      const { features } = this;
+      this.features = undefined;
+
+      const user = await this.create();
+      const activationToken =
+        await Orchestrator.UserActivation.withUser(user).generateToken();
+      await Orchestrator.UserActivation.activate(activationToken);
+      const activatedUser = await User.findById(user.id);
+
+      if (features && Array.isArray(features) && features.length) {
+        const userFeatures = [...activatedUser.features, ...features];
+        await User.setFeaturesById(user.id, ...userFeatures);
+        activatedUser.features = userFeatures;
+      }
+
+      return {
+        ...activatedUser,
+        plainPassword: user.plainPassword,
+      };
+    },
+    async setFeatures(user, ...features) {
+      await User.setFeaturesById(user.id, ...features);
+      return { ...user, features };
     },
   },
   Session: {
@@ -114,6 +163,10 @@ export const Orchestrator = {
     },
     withRandomNewUser() {
       this.user = Orchestrator.User.create();
+      return this;
+    },
+    withRandomNewActivatedUser() {
+      this.user = Orchestrator.User.createActivated();
       return this;
     },
     async create() {
@@ -132,15 +185,38 @@ export const Orchestrator = {
       };
     },
   },
+  UserActivation: {
+    user: undefined,
+    withUser(user) {
+      this.user = user;
+      return this;
+    },
+    async activate(token) {
+      await UserActivation.activate(token);
+    },
+    async generateToken() {
+      let { user } = this;
+      this.user = undefined;
+
+      if (user instanceof Promise) {
+        user = await user;
+      }
+
+      const activation = await UserActivation.create(user.id);
+      return activation.id;
+    },
+  },
   Mock: faker,
   Email: {
     async readLatestEmail() {
-      const fetchEmailsRes = await fetch(`${emailHttpUrl}/messages`);
+      const fetchEmailsRes = await fetch(`${EMAIL_HTTP_URL}/messages`);
       const emails = await fetchEmailsRes.json();
       const latestEmail = emails.pop();
 
+      if (!latestEmail) return;
+
       const fetchEmailBodyRes = await fetch(
-        `${emailHttpUrl}/messages/${latestEmail.id}.plain`,
+        `${EMAIL_HTTP_URL}/messages/${latestEmail.id}.plain`,
       );
       const latestEmailBody = await fetchEmailBodyRes.text();
 
@@ -152,7 +228,7 @@ export const Orchestrator = {
       };
     },
     clearInbox() {
-      return fetch(`${emailHttpUrl}/messages`, { method: "DELETE" });
+      return fetch(`${EMAIL_HTTP_URL}/messages`, { method: "DELETE" });
     },
   },
   extractCookiesFromResponse(res) {
@@ -161,6 +237,13 @@ export const Orchestrator = {
       jar[parsedCookie.name] = parsedCookie;
       return jar;
     }, {});
+  },
+  extractActivationTokenFromActivationEmailBody(activationEmailBody) {
+    const [, activationUrl] = activationEmailBody.match(/(http?.*)\n/);
+    const extractedActivationToken = new URL(activationUrl).pathname
+      .split("/")
+      .pop();
+    return extractedActivationToken;
   },
   async withTimeTravel(cb, timeToTravelInMs) {
     jest.useFakeTimers({

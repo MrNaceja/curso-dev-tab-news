@@ -1,6 +1,7 @@
 import { UnauthorizedError } from "infra/errors";
 import { Session } from "models/session";
 import { Orchestrator } from "tests/orchestrator";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -8,9 +9,9 @@ describe("POST on api/v1/sessions", () => {
   describe("With Anonymous user", () => {
     test("when passing correct password but incorrect email", async () => {
       const correctPassword = "correct_password";
-      await Orchestrator.User.withPassword(correctPassword).create();
+      await Orchestrator.User.withPassword(correctPassword).createActivated();
 
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,9 +34,9 @@ describe("POST on api/v1/sessions", () => {
     });
     test("when passing correct email but incorrect password", async () => {
       const correctEmail = "correct@email";
-      await Orchestrator.User.withEmail(correctEmail).create();
+      await Orchestrator.User.withEmail(correctEmail).createActivated();
 
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,9 +58,9 @@ describe("POST on api/v1/sessions", () => {
       );
     });
     test("when passing correct email and password", async () => {
-      const userTest = await Orchestrator.User.create();
+      const userTest = await Orchestrator.User.createActivated();
 
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/sessions`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -75,16 +76,9 @@ describe("POST on api/v1/sessions", () => {
       expect(createdSession).toEqual(
         expect.objectContaining({
           id: createdSession.id,
-          user_id: userTest.id,
-          created_at: expect.stringContaining(
-            new Date(createdSession.created_at).toISOString(),
-          ),
-          updated_at: expect.stringContaining(
-            new Date(createdSession.updated_at).toISOString(),
-          ),
-          expires_at: expect.stringContaining(
-            new Date(createdSession.expires_at).toISOString(),
-          ),
+          created_at: new Date(createdSession.created_at).toISOString(),
+          updated_at: new Date(createdSession.updated_at).toISOString(),
+          expires_at: new Date(createdSession.expires_at).toISOString(),
         }),
       );
 

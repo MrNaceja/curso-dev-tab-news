@@ -1,5 +1,6 @@
 import { NotFoundError } from "infra/errors";
 import { Orchestrator } from "tests/orchestrator";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -10,12 +11,13 @@ describe("GET on /api/v1/users/[username]", () => {
         await Orchestrator.User.withUsername("usernameExactCase").create();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${userTest.username}`,
+        `${getWebserverOrigin()}/api/v1/users/${userTest.username}`,
         {
           method: "GET",
         },
       );
       const userFounded = await res.json();
+      console.log({ userFounded });
 
       expect(res.status).toBe(200);
       expect(userFounded).toEqual(
@@ -28,8 +30,6 @@ describe("GET on /api/v1/users/[username]", () => {
           ),
           id: expect.stringContaining(userFounded.id),
           username: expect.stringContaining(userTest.username),
-          email: expect.stringContaining(userTest.email),
-          password: expect.stringContaining(userTest.password),
         }),
       );
     });
@@ -39,7 +39,7 @@ describe("GET on /api/v1/users/[username]", () => {
       ).create();
 
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/${userTest.username.toLowerCase()}`,
+        `${getWebserverOrigin()}/api/v1/users/${userTest.username.toLowerCase()}`,
         {
           method: "GET",
         },
@@ -59,14 +59,12 @@ describe("GET on /api/v1/users/[username]", () => {
           ),
           id: expect.stringContaining(userFounded.id),
           username: expect.stringContaining(userTest.username),
-          email: expect.stringContaining(userTest.email),
-          password: expect.stringContaining(userTest.password),
         }),
       );
     });
     test("with inexistent username", async () => {
       const res = await fetch(
-        `${process.env.WEBSERVER_URL}/api/v1/users/UsuarioInexistente`,
+        `${getWebserverOrigin()}/api/v1/users/UsuarioInexistente`,
         {
           method: "GET",
         },

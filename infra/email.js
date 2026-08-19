@@ -1,8 +1,10 @@
+import { ServiceUnavailableError } from "infra/errors";
 import { createTransport } from "nodemailer";
 
-export const emailHttpUrl = new URL(
-  `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`,
-);
+export const getEmailHttpUrl = () =>
+  new URL(
+    `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`,
+  );
 
 const emailSmtpTransporter = createTransport({
   host: process.env.EMAIL_SMTP_HOST,
@@ -16,6 +18,9 @@ const emailSmtpTransporter = createTransport({
 
 export const Email = {
   from(from) {
+    if (!from.startsWith("<")) {
+      from = `<${from}>`;
+    }
     this._from = from;
     return this;
   },
@@ -23,7 +28,7 @@ export const Email = {
     if (to.length === 1 && Array.isArray(to[0])) {
       to = to[0];
     }
-    this._to = to;
+    this._to = to.map((t) => (t.startsWith("<") ? t : `<${t}>`));
     return this;
   },
   async send(subject, body) {
@@ -31,11 +36,21 @@ export const Email = {
     delete this._from;
     delete this._to;
 
-    return emailSmtpTransporter.sendMail({
-      from,
-      to,
-      subject,
-      text: body,
-    });
+    try {
+      return await emailSmtpTransporter.sendMail({
+        from,
+        to,
+        subject,
+        text: body,
+      });
+    } catch (e) {
+      throw new ServiceUnavailableError({
+        cause: e,
+        ctx: {
+          subject,
+          body,
+        },
+      });
+    }
   },
 };

@@ -1,6 +1,9 @@
-import { ValidationError } from "infra/errors";
+import { ForbiddenError, ValidationError } from "infra/errors";
 import { Security } from "models/security";
 import { Orchestrator } from "tests/orchestrator";
+import * as Cookie from "cookie";
+import { User } from "models/user";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -12,30 +15,31 @@ describe("POST on /api/v1/users", () => {
         email: "naceja@email.com",
         password: "naceja123",
       };
-      const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(userTest),
       });
-      const createdUser = await res.json();
+      const createdUserOutput = await res.json();
 
       expect(res.status).toBe(201);
-      expect(createdUser).toEqual(
+      expect(createdUserOutput).toEqual(
         expect.objectContaining({
           created_at: expect.stringContaining(
-            new Date(createdUser.created_at).toISOString(),
+            new Date(createdUserOutput.created_at).toISOString(),
           ),
           updated_at: expect.stringContaining(
-            new Date(createdUser.updated_at).toISOString(),
+            new Date(createdUserOutput.updated_at).toISOString(),
           ),
-          id: expect.stringContaining(createdUser.id),
+          id: expect.stringContaining(createdUserOutput.id),
           username: expect.stringContaining(userTest.username),
-          email: expect.stringContaining(userTest.email),
-          password: expect.stringContaining(createdUser.password),
+          features: ["activate:user"],
         }),
       );
+
+      const createdUser = await User.findById(createdUserOutput.id);
 
       const isSamePassword = await Security.comparePassword(
         userTest.password,
@@ -50,7 +54,7 @@ describe("POST on /api/v1/users", () => {
       expect(isNotSamePassword).toBeFalsy();
     });
     test("when passing duplicated username", async () => {
-      const res1 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res1 = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,7 +67,7 @@ describe("POST on /api/v1/users", () => {
       });
       expect(res1.status).toBe(201);
 
-      const res2 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res2 = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +88,7 @@ describe("POST on /api/v1/users", () => {
       expect(errorBody).toEqual(expectedDuplicatedUsernameError.toJSON());
     });
     test("when passing duplicated email", async () => {
-      const res1 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res1 = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -97,7 +101,7 @@ describe("POST on /api/v1/users", () => {
       });
       expect(res1.status).toBe(201);
 
-      const res2 = await fetch(`${process.env.WEBSERVER_URL}/api/v1/users`, {
+      const res2 = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -116,6 +120,38 @@ describe("POST on /api/v1/users", () => {
 
       expect(res2.status).toBe(expectedDuplicatedEmailError.statusCode);
       expect(errorBody).toEqual(expectedDuplicatedEmailError.toJSON());
+    });
+  });
+
+  describe("with Authenticated user", () => {
+    test("passing unique and valid data", async () => {
+      const existentUserAuthenticatedSession =
+        await Orchestrator.Session.withRandomNewActivatedUser().create();
+
+      const userToCreate = {
+        username: Orchestrator.Mock.internet.username().replace(/[_.-]/g, ""),
+        email: Orchestrator.Mock.internet.email(),
+        password: Orchestrator.Mock.internet.password(),
+      };
+
+      const res = await fetch(`${getWebserverOrigin()}/api/v1/users`, {
+        method: "POST",
+        headers: {
+          Cookie: Cookie.stringifyCookie({
+            session_id: existentUserAuthenticatedSession.id,
+          }),
+        },
+        body: JSON.stringify(userToCreate),
+      });
+
+      const forbiddenError = await res.json();
+      const expectedError = new ForbiddenError({
+        message: "Você não possui permissão(ões) para executar esta ação.",
+        action: 'Verifique se você possui a(s) feature(s) "create:user"',
+      });
+
+      expect(res.status).toBe(expectedError.statusCode);
+      expect(forbiddenError).toEqual(expectedError.toJSON());
     });
   });
 });

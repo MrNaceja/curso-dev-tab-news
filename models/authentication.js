@@ -1,4 +1,5 @@
 import { NotFoundError, UnauthorizedError } from "infra/errors";
+import { Authorization } from "models/authorization";
 import { Security } from "models/security";
 import { Session } from "models/session";
 import { User } from "models/user";
@@ -27,12 +28,27 @@ export const Authentication = {
       throw e;
     }
   },
+  async getUserBySession(sessionId) {
+    try {
+      const session = await Session.findValidById(sessionId);
+      return User.findById(session.user_id);
+    } catch (e) {
+      if (e instanceof UnauthorizedError || e instanceof NotFoundError) {
+        throw new UnauthorizedError({
+          message: "Usuário não possui sessão ativa.",
+          action: "Tente efetuar o login novamente",
+        });
+      }
+      throw e;
+    }
+  },
   async createUserSession({ email, password }) {
     const user = await Authentication.getUserByCredentials({
       email,
       password,
     });
     const session = await Session.create(user.id);
+    await Authorization.validate(user, "create:session");
     return session;
   },
   async renewUserSession(sessionId) {

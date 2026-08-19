@@ -36,6 +36,7 @@ async function upServices() {
     });
     process.exit(await withExitCode(nextDev));
   } catch (err) {
+    console.error({ err });
     await downServices();
     process.exit(typeof err === "number" ? err : 1);
   }

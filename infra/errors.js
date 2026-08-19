@@ -1,11 +1,12 @@
 class BaseError extends Error {
-  constructor({ cause, message, action, name, statusCode }) {
+  constructor({ cause, message, action, name, statusCode, ctx }) {
     super(message, {
       cause,
     });
     this.name = name;
     this.action = action;
     this.statusCode = statusCode;
+    this.ctx = ctx;
   }
 
   toJSON() {
@@ -14,6 +15,7 @@ class BaseError extends Error {
       name: this.name,
       action: this.action,
       status_code: this.statusCode,
+      context: this.ctx,
     };
   }
 }
@@ -67,9 +69,22 @@ export class UnauthorizedError extends BaseError {
     });
   }
 }
+export class ForbiddenError extends BaseError {
+  constructor({
+    message = "Acesso negado.",
+    action = "Verifique as permissões (features) concedidas.",
+  }) {
+    super({
+      message,
+      action,
+      name: "ForbiddenError",
+      statusCode: 403,
+    });
+  }
+}
 
 export class ServiceUnavailableError extends BaseError {
-  constructor({ message, cause }) {
+  constructor({ message, cause, ctx }) {
     super({
       message:
         "Serviço indisponível no momento." + (message ? `\n ${message}` : ""),
@@ -77,6 +92,7 @@ export class ServiceUnavailableError extends BaseError {
       action: "Verifique a disponíbilidade do serviço.",
       statusCode: 503,
       cause,
+      ctx,
     });
   }
 }

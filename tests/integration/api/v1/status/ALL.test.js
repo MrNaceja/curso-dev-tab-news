@@ -1,5 +1,6 @@
 import { MethodNotAllowedError } from "infra/errors";
 import { Orchestrator } from "tests/orchestrator";
+import { getWebserverOrigin } from "infra/controller";
 
 beforeAll(Orchestrator.prepareEnviromentWithMigrationsExecuted);
 
@@ -11,7 +12,7 @@ describe("ALL another methods (exept GET) on /api/v1/status", () => {
       const expectedError = new MethodNotAllowedError();
 
       for (const method of methodsNotAllowed) {
-        const res = await fetch(`${process.env.WEBSERVER_URL}/api/v1/status`, {
+        const res = await fetch(`${getWebserverOrigin()}/api/v1/status`, {
           method,
         });
         expect(res.status).toBe(expectedError.statusCode);

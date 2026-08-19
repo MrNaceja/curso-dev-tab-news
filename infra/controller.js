@@ -1,19 +1,28 @@
 import * as Cookie from "cookie";
 
 import {
+  ForbiddenError,
   InternalServerError,
   MethodNotAllowedError,
   NotFoundError,
   UnauthorizedError,
   ValidationError,
 } from "infra/errors";
+import { Authentication } from "models/authentication";
+import { Authorization } from "models/authorization";
 
 export class Controller {
   constructor() {
     /**
-     * @type {Map<string, (req: Request, res: Response) => void>}
+     * @type {Map<string, (req: Request, res: Response) => void | Promise<void>>}
      */
     this.handlers = new Map();
+
+    /**
+     * @type {Map<string, Array<(req: Request, res: Response, next: () => void | Promise<void>) => void | Promise<void>>>}
+     */
+    this.middlewares = new Map();
+
     /**
      * @type {Map<string, Cookie.Cookies>}
      */
@@ -23,44 +32,89 @@ export class Controller {
     this.req = undefined;
     /** @type {Response} */
     this.res = undefined;
+
+    this.withInjectUserMiddleware();
   }
 
-  /**
-   * @param {(req: Request, res: Response) => void} handler
-   */
-  GET(handler) {
+  async withInjectUserMiddleware() {
+    this.with(async (req, res, next) => {
+      const sessionId = this.getCookie("session_id");
+
+      const anonymousUser = {
+        features: ["activate:user", "create:session", "create:user"],
+      };
+      let user = anonymousUser;
+      if (sessionId) {
+        const authenticatedUser =
+          await Authentication.getUserBySession(sessionId);
+        user = authenticatedUser;
+      }
+      req.context = {
+        ...req.context,
+        user,
+      };
+      console.info(
+        `Request ${sessionId ? "authenticated" : "anonymous"} user`,
+        user,
+      );
+      next();
+    });
+  }
+
+  with(middleware, method = "ALL") {
+    if (!this.middlewares.get(method)) {
+      this.middlewares.set(method, []);
+    }
+    this.middlewares.get(method).push(middleware);
+    return this;
+  }
+
+  GET(middleware, handler) {
+    if (!handler) {
+      handler = middleware;
+    } else {
+      this.with(middleware, "GET");
+    }
     this.handlers.set("GET", handler);
     return this;
   }
 
-  /**
-   * @param {(req: Request, res: Response) => void} handler
-   */
-  POST(handler) {
+  POST(middleware, handler) {
+    if (!handler) {
+      handler = middleware;
+    } else {
+      this.with(middleware, "POST");
+    }
     this.handlers.set("POST", handler);
     return this;
   }
 
-  /**
-   * @param {(req: Request, res: Response) => void} handler
-   */
-  DELETE(handler) {
+  DELETE(middleware, handler) {
+    if (!handler) {
+      handler = middleware;
+    } else {
+      this.with(middleware, "DELETE");
+    }
     this.handlers.set("DELETE", handler);
     return this;
   }
 
-  /**
-   * @param {(req: Request, res: Response) => void} handler
-   */
-  PUT(handler) {
+  PUT(middleware, handler) {
+    if (!handler) {
+      handler = middleware;
+    } else {
+      this.with(middleware, "PUT");
+    }
     this.handlers.set("PUT", handler);
     return this;
   }
 
-  /**
-   * @param {(req: Request, res: Response) => void} handler
-   */
-  PATCH(handler) {
+  PATCH(middleware, handler) {
+    if (!handler) {
+      handler = middleware;
+    } else {
+      this.with(middleware, "PATCH");
+    }
     this.handlers.set("PATCH", handler);
     return this;
   }
@@ -105,17 +159,47 @@ export class Controller {
     return this;
   }
 
+  withAuthorizedFeaturesOnly(...features) {
+    return async function (req, _, next) {
+      await Authorization.validate(req.context.user, features);
+      next();
+    };
+  }
+
   async handle(req, res) {
     this.req = req;
     this.res = res;
+    const method = String(req.method).toUpperCase();
 
     try {
-      if (!this.handlers.has(String(req.method).toUpperCase())) {
+      const middlewaresToExecute = [
+        ...(this.middlewares.get("ALL") || []),
+        ...(this.middlewares.get(method) || []),
+      ];
+
+      let shouldNext = false;
+      const next = () => {
+        shouldNext = true;
+      };
+
+      for (const middleware of middlewaresToExecute) {
+        const execution = middleware(req, res, next);
+        if (execution instanceof Promise) {
+          await execution;
+        }
+        if (shouldNext) {
+          continue;
+        } else {
+          return;
+        }
+      }
+
+      if (!this.handlers.has(method)) {
         const error = new MethodNotAllowedError();
         return res.status(error.statusCode).json(error);
       }
 
-      const handler = this.handlers.get(String(req.method).toUpperCase());
+      const handler = this.handlers.get(method);
       if (!handler) {
         const error = new NotFoundError();
         return res.status(error.statusCode).json(error);
@@ -124,16 +208,17 @@ export class Controller {
       return await handler.call(this, req, res);
     } catch (e) {
       let error = e;
+      console.error(error);
 
       if (
         !(error instanceof ValidationError) &&
         !(error instanceof NotFoundError) &&
-        !(error instanceof UnauthorizedError)
+        !(error instanceof UnauthorizedError) &&
+        !(error instanceof ForbiddenError)
       ) {
         error = new InternalServerError({
           cause: error,
         });
-        console.error(error);
       }
 
       if (error instanceof UnauthorizedError) {
@@ -147,4 +232,11 @@ export class Controller {
       return res.status(error.statusCode).json(error);
     }
   }
+}
+
+export function getWebserverOrigin() {
+  if (process.env.VERCEL_ENV === "preview") {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return process.env.WEBSERVER_URL;
 }
