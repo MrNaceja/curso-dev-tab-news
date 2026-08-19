@@ -51,5 +51,5 @@ async function displaySystemStatus(req, res) {
     userAuthenticated,
   )(status);
 
-  res.status(200).json(statusSecurePublicOutput);
+  return res.status(200).json(statusSecurePublicOutput);
 }
