@@ -87,6 +87,7 @@ describe("DELETE on /api/v1/sessions", () => {
         maxAge: -1,
         path: "/",
         httpOnly: true,
+        sameSite: "lax",
       });
 
       // after expires session, expects that another request using same sid throw unathorized error
