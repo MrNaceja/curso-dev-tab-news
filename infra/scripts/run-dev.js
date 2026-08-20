@@ -4,7 +4,7 @@ function runCommand(cmd, args) {
   if (process.platform === "win32" && ["npm", "npx"].includes(cmd)) {
     cmd = `${cmd}.cmd`;
   }
-  return spawn(cmd, args, { stdio: "inherit" });
+  return spawn(cmd, args, { stdio: "inherit", shell: true });
 }
 function withExitCode(process) {
   return new Promise((resolve, reject) => {
