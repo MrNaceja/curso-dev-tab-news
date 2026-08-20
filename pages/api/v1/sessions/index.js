@@ -18,14 +18,17 @@ async function createSession(req, res) {
   const { email, password } = req.body;
   const session = await Authentication.createUserSession({ email, password });
 
-  this.setCookie({
+  /** @type {import("cookie").SetCookie} */
+  const sessionCookie = {
     name: "session_id",
     value: session.id,
     path: "/",
     maxAge: Session.EXPIRES_AT_IN_MS / 1000,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-  });
+    sameSite: "lax",
+  };
+  this.setCookie(sessionCookie);
 
   const { user: userAuthenticated } = req.context;
 
@@ -42,14 +45,17 @@ async function renewSession(req, res) {
 
   await Authentication.renewUserSession(sessionId);
 
-  this.setCookie({
+  /** @type {import("cookie").SetCookie} */
+  const sessionCookie = {
     name: "session_id",
     value: sessionId,
     path: "/",
     maxAge: Session.EXPIRES_AT_IN_MS / 1000,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-  });
+    sameSite: "lax",
+  };
+  this.setCookie(sessionCookie);
 
   return res.status(204).send();
 }
@@ -59,14 +65,17 @@ async function invalidateSession(req, res) {
 
   await Authentication.invalidateUserSession(sessionId);
 
-  this.setCookie({
+  /** @type {import("cookie").SetCookie} */
+  const sessionCookie = {
     name: "session_id",
     value: "",
     path: "/",
     maxAge: -1,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-  });
+    sameSite: "lax",
+  };
+  this.setCookie(sessionCookie);
 
   res.status(204).send();
 }

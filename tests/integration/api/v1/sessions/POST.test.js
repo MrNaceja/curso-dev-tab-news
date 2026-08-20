@@ -96,6 +96,7 @@ describe("POST on api/v1/sessions", () => {
         maxAge: Session.EXPIRES_AT_IN_MS / 1000,
         path: "/",
         httpOnly: true,
+        sameSite: "lax",
       });
     });
   });
