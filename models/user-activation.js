@@ -10,7 +10,7 @@ const expiresAt15MinutesInMs = 60 * 15 * 1000;
 export const UserActivation = {
   EXPIRES_AT_IN_MS: expiresAt15MinutesInMs,
   generateActivationLink(activationToken) {
-    return `${getWebserverOrigin()}/signup/activate/${activationToken}`;
+    return `${getWebserverOrigin()}/cadastro/ativar/${activationToken}`;
   },
   async create(userId) {
     const createdAt = new Date();

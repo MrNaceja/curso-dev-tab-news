@@ -1,4 +1,7 @@
+import { Banner, Heading, Spinner, Stack } from "@primer/react";
+import { Card } from "@primer/react/experimental";
 import useSWR from "swr";
+import { DefaultLayout } from "ui/widgets/default-layout";
 
 async function fetchApi(endpoint) {
   const response = await fetch(endpoint);
@@ -39,42 +42,64 @@ export default function StatusPage() {
         hour12: false,
       }).format(new Date(data.updated_at));
 
-  return (
-    <div>
-      <h1>Status</h1>
+  const database = data?.dependencies?.database;
 
-      {isLoading ? (
-        <span>Carregando informações...</span>
-      ) : (
-        <>
-          <span>
-            <strong>Última atualização</strong> {updatedAtHumanReadableFormat}
-          </span>
-          <br />
-          <br />
-          <details>
-            <summary>Database</summary>
-            <div>
-              <span style={{ display: "block" }}>Versão do Postgres:</span>
-              <strong>{data?.dependencies?.database?.postgres_version}</strong>
-            </div>
-            <div>
-              <span style={{ display: "block" }}>
-                Número máximo de conexões:
-              </span>
-              <strong>{data?.dependencies?.database?.max_connections}</strong>
-            </div>
-            <div>
-              <span style={{ display: "block" }}>
-                Conexões abertas no momento:
-              </span>
-              <strong>
-                {data?.dependencies?.database?.opened_connections}
-              </strong>
-            </div>
-          </details>
-        </>
-      )}
-    </div>
+  return (
+    <DefaultLayout
+      metadata={{
+        title: "Status",
+        description: "Status do sistema.",
+      }}
+    >
+      <Stack>
+        <Heading as="h1">Status</Heading>
+
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <Stack>
+            <Banner variant="info" layout="compact">
+              <Banner.Title>Última atualização</Banner.Title>
+              <Banner.Description>
+                {updatedAtHumanReadableFormat}
+              </Banner.Description>
+            </Banner>
+
+            <Heading as="h2" variant="medium">
+              Database
+            </Heading>
+            <Stack direction={{ narrow: "vertical", regular: "horizontal" }}>
+              <Stack.Item grow>
+                <Card>
+                  <Card.Heading>PostgresSQL</Card.Heading>
+                  <Card.Description>
+                    {database?.version ?? "-"}
+                  </Card.Description>
+                  <Card.Metadata>Versão atual em execução.</Card.Metadata>
+                </Card>
+              </Stack.Item>
+              <Stack.Item grow>
+                <Card>
+                  <Card.Heading>Conexões abertas</Card.Heading>
+                  <Card.Description>
+                    {database?.opened_connections}
+                  </Card.Description>
+                  <Card.Metadata>Abertas no momento.</Card.Metadata>
+                </Card>
+              </Stack.Item>
+              <Stack.Item grow>
+                <Card>
+                  <Card.Heading>Máximo conexões</Card.Heading>
+                  <Card.Description>
+                    {database?.max_connections}
+                  </Card.Description>
+                  <Card.Metadata>Número máximo de conexões.</Card.Metadata>
+                </Card>
+              </Stack.Item>
+            </Stack>
+          </Stack>
+        )}
+      </Stack>
+    </DefaultLayout>
   );
 }

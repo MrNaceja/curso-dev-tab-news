@@ -1,4 +1,4 @@
-import { Header, PageLayout, Text } from "@primer/react";
+import { Header, PageLayout, Stack, Text } from "@primer/react";
 import Head from "next/head";
 
 export function DefaultLayout({ children, metadata }) {
@@ -12,7 +12,7 @@ export function DefaultLayout({ children, metadata }) {
           <meta name="description" content={metadata.description} />
         )}
       </Head>
-      <PageLayout padding="none">
+      <PageLayout padding="none" containerWidth="full">
         <PageLayout.Header>
           <Header>
             <Header.Item full>
@@ -28,7 +28,11 @@ export function DefaultLayout({ children, metadata }) {
         </PageLayout.Header>
         <PageLayout.Content padding="normal">{children}</PageLayout.Content>
         <PageLayout.Footer divider="line">
-          <Text size="small">© {new Date().getFullYear()} Naceja</Text>
+          <Stack align="center" justify="center">
+            <Stack.Item>
+              <Text size="small">© {new Date().getFullYear()} Naceja</Text>
+            </Stack.Item>
+          </Stack>
         </PageLayout.Footer>
       </PageLayout>
     </>

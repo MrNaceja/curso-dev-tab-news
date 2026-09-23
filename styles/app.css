@@ -1,0 +1,6 @@
+@import "@primer/primitives/dist/css/functional/themes/light.css";
+
+.container-xs {
+  margin-inline: auto;
+  max-width: 20rem;
+}
